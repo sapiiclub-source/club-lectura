@@ -53,11 +53,15 @@ def load_data():
             d = json.load(f)
         if "libros" not in d:
             d["libros"] = []
-        # migrar libros viejos que tenían "valoracion" a "valoraciones"
         for libro in d["libros"]:
+            # migrar formato viejo
             if "valoraciones" not in libro:
-                old_val = libro.pop("valoracion", 0)
                 libro["valoraciones"] = {}
+            if "estados_miembro" not in libro:
+                libro["estados_miembro"] = {}
+            if "comentarios" not in libro:
+                libro["comentarios"] = {}
+            libro.pop("valoracion", None)
             libro.pop("comentario", None)
         return d
     return {
@@ -253,10 +257,11 @@ with tab_puntos:
 # ╚══════════════════════╝
 with tab_libros:
 
-    ESTADOS = {
-        "leyendo":   {"label": "Leyendo ahora", "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
-        "leido":     {"label": "Ya leímos",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
-        "pendiente": {"label": "Pendiente",     "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
+    ESTADOS_M = {
+        "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
+        "leido":     {"label": "Leído",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
+        "pendiente": {"label": "Pendiente", "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
+        "sin_estado":{"label": "Sin estado","emoji": "·",  "color": "#f1f1f1", "border": "#ccc",    "text": "#999"},
     }
 
     def estrellas(n):
@@ -265,98 +270,110 @@ with tab_libros:
         n_round = round(n)
         return "⭐" * n_round + "☆" * (5 - n_round)
 
-    def promedio_valoraciones(libro):
+    def promedio_vals(libro):
         vals = libro.get("valoraciones", {})
-        valores = [v for v in vals.values() if v > 0]
-        if not valores:
-            return 0
-        return sum(valores) / len(valores)
+        valores = [v for v in vals.values() if v and v > 0]
+        return round(sum(valores) / len(valores), 1) if valores else 0
 
-    def render_libro(libro, idx):
-        est = ESTADOS.get(libro.get("estado", "pendiente"), ESTADOS["pendiente"])
-        autora = libro.get("autora", "")
-        prom = promedio_valoraciones(libro)
-        vals = libro.get("valoraciones", {})
-
-        color_bg     = est["color"]
-        color_border = est["border"]
-        color_text   = est["text"]
-        emoji_estado = est["emoji"]
-
-        html = (
-            "<div style='background:" + color_bg + ";border:2px solid " + color_border + ";"
-            "border-radius:20px;padding:14px 16px 12px;margin-bottom:6px;"
-            "box-shadow:0 4px 12px rgba(0,0,0,0.05)'>"
-            "<div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>"
-            "<span style='font-size:20px'>" + emoji_estado + "</span>"
-            "<span style='font-weight:800;color:" + color_text + ";font-size:16px'>" + libro["titulo"] + "</span>"
+    def render_tarjeta_miembro(nombre, estado_key, val, comentario):
+        """Renderiza la tarjeta pequeña de una miembro para un libro."""
+        em = ESTADOS_M.get(estado_key, ESTADOS_M["sin_estado"])
+        stars = estrellas(val) if val and val > 0 else ""
+        val_str = " " + str(val) + "/5" if val and val > 0 else ""
+        comentario_html = ""
+        if comentario and comentario.strip():
+            comentario_html = (
+                "<div style='margin-top:5px;font-size:12px;color:#555;font-style:italic;"
+                "background:rgba(255,255,255,0.7);border-radius:8px;padding:4px 8px;line-height:1.4'>"
+                "💬 " + comentario + "</div>"
+            )
+        return (
+            "<div style='background:" + em["color"] + ";border:1.5px solid " + em["border"] + ";"
+            "border-radius:14px;padding:10px 12px;flex:1;min-width:120px'>"
+            "<div style='font-weight:800;color:" + em["text"] + ";font-size:13px;margin-bottom:3px'>" + nombre + "</div>"
+            "<div style='font-size:11px;color:" + em["text"] + ";font-weight:600;margin-bottom:4px'>" +
+            em["emoji"] + " " + em["label"] + "</div>"
+            + ("<div style='font-size:14px;line-height:1'>" + stars + "<span style='font-size:11px;color:" + em["text"] + ";font-weight:700'>" + val_str + "</span></div>" if stars else "") +
+            comentario_html +
             "</div>"
         )
+
+    def render_libro_card(libro, idx, nombres_jugadoras):
+        """Renderiza la tarjeta principal del libro con tarjetas de miembros."""
+        autora = libro.get("autora", "")
+        prom = promedio_vals(libro)
+
+        # Header del libro
+        html = (
+            "<div style='background:white;border:2px solid #c5ebd8;border-radius:20px;"
+            "padding:16px;margin-bottom:8px;box-shadow:0 4px 14px rgba(0,0,0,0.06)'>"
+            "<div style='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px'>"
+            "<div>"
+            "<div style='font-weight:800;color:#2d7a4f;font-size:17px'>📚 " + libro["titulo"] + "</div>"
+        )
         if autora:
-            html += "<div style='font-size:13px;color:#777;font-weight:600;margin-left:30px'>✍️ " + autora + "</div>"
-
-        prom_str = ""
-        if prom > 0:
-            prom_str = " <span style='font-size:13px;color:" + color_text + ";font-weight:700'>" + str(round(prom, 1)) + "/5</span>"
-        html += "<div style='margin-left:30px;margin-top:6px;font-size:20px;line-height:1'>" + estrellas(prom) + prom_str + "</div>"
-
-        # Valoraciones individuales
-        items_vals = [v for v in vals.items() if v[1] > 0]
-        if items_vals:
-            html += "<div style='margin-left:30px;margin-top:6px;display:flex;flex-wrap:wrap;gap:6px'>"
-            for nombre, v in items_vals:
-                html += (
-                    "<span style='font-size:12px;color:#555;background:rgba(255,255,255,0.6);"
-                    "border-radius:8px;padding:2px 8px'>"
-                    "<b style='color:" + color_text + "'>" + nombre + "</b>: " +
-                    "⭐" * v + "☆" * (5 - v) + "</span>"
-                )
-            html += "</div>"
-
+            html += "<div style='font-size:13px;color:#888;font-weight:600;margin-top:2px'>✍️ " + autora + "</div>"
         html += "</div>"
+
+        # Promedio general
+        if prom > 0:
+            html += (
+                "<div style='text-align:right'>"
+                "<div style='font-size:16px;line-height:1'>" + estrellas(prom) + "</div>"
+                "<div style='font-size:12px;color:#2d7a4f;font-weight:700'>" + str(prom) + "/5 promedio</div>"
+                "</div>"
+            )
+        html += "</div>"
+
+        # Tarjetas por miembro
+        html += "<div style='display:flex;gap:8px;flex-wrap:wrap'>"
+        for nombre in nombres_jugadoras:
+            estado_m = libro.get("estados_miembro", {}).get(nombre, "sin_estado")
+            val_m    = libro.get("valoraciones", {}).get(nombre, 0)
+            com_m    = libro.get("comentarios", {}).get(nombre, "")
+            html += render_tarjeta_miembro(nombre, estado_m, val_m, com_m)
+        html += "</div></div>"
+
         st.markdown(html, unsafe_allow_html=True)
 
+    # ── Contadores globales ────────────────────────────────────
     libros = data.get("libros", [])
-    n_leidos    = sum(1 for l in libros if l.get("estado") == "leido")
-    n_leyendo   = sum(1 for l in libros if l.get("estado") == "leyendo")
-    n_pendiente = sum(1 for l in libros if l.get("estado") == "pendiente")
+    nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
-    c1, c2, c3 = st.columns(3)
-    for col, label, n, color, tc in [
-        (c1, "Ya leímos ✅",  n_leidos,    "#d4f0e4", "#2d7a4f"),
-        (c2, "Leyendo 📖",    n_leyendo,   "#d4edf7", "#1a6a8a"),
-        (c3, "Pendientes 🕐", n_pendiente, "#fce8f3", "#a0417a"),
-    ]:
-        with col:
-            st.markdown(
-                "<div style='text-align:center;background:" + color + ";border-radius:16px;padding:12px 8px;"
-                "box-shadow:0 2px 8px rgba(0,0,0,0.05)'>"
-                "<div style='font-size:26px;font-weight:800;color:" + tc + "'>" + str(n) + "</div>"
-                "<div style='font-size:12px;color:" + tc + ";font-weight:700'>" + label + "</div></div>",
-                unsafe_allow_html=True
-            )
+    n_total     = len(libros)
+    n_con_leido = sum(1 for l in libros if any(
+        l.get("estados_miembro", {}).get(n) == "leido" for n in nombres_jugadoras
+    ))
+
+    st.markdown(
+        "<div style='display:flex;gap:10px;margin-bottom:4px'>"
+        "<div style='background:#d4f0e4;border-radius:14px;padding:10px 16px;flex:1;text-align:center'>"
+        "<div style='font-size:22px;font-weight:800;color:#2d7a4f'>" + str(n_total) + "</div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:700'>Total libros 📚</div></div>"
+        "<div style='background:#d4edf7;border-radius:14px;padding:10px 16px;flex:1;text-align:center'>"
+        "<div style='font-size:22px;font-weight:800;color:#1a6a8a'>" + str(n_con_leido) + "</div>"
+        "<div style='font-size:12px;color:#1a6a8a;font-weight:700'>Con al menos 1 leído ✅</div></div>"
+        "</div>",
+        unsafe_allow_html=True
+    )
 
     st.divider()
 
+    # ── Agregar libro ──────────────────────────────────────────
     with st.expander("➕ Agregar libro"):
         c1, c2 = st.columns(2)
         with c1:
             nuevo_titulo = st.text_input("Título *", placeholder="Ej: El principito", key="lib_titulo")
         with c2:
             nueva_autora = st.text_input("Autora/Autor", placeholder="Ej: Saint-Exupéry", key="lib_autora")
-        nuevo_estado = st.selectbox(
-            "Estado inicial",
-            options=list(ESTADOS.keys()),
-            format_func=lambda x: ESTADOS[x]["emoji"] + " " + ESTADOS[x]["label"],
-            key="lib_estado"
-        )
         if st.button("📚 Agregar libro", type="primary", use_container_width=True):
             if nuevo_titulo.strip():
                 data["libros"].append({
                     "titulo": nuevo_titulo.strip(),
                     "autora": nueva_autora.strip(),
-                    "estado": nuevo_estado,
                     "valoraciones": {},
+                    "estados_miembro": {},
+                    "comentarios": {},
                     "fecha_agregado": datetime.now().strftime("%d/%m/%Y")
                 })
                 save_data(data)
@@ -375,65 +392,123 @@ with tab_libros:
             unsafe_allow_html=True
         )
     else:
-        nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
-        for estado_key, estado_info in ESTADOS.items():
-            libros_estado = [(i, l) for i, l in enumerate(libros) if l.get("estado") == estado_key]
-            if not libros_estado:
-                continue
-            st.markdown("### " + estado_info["emoji"] + " " + estado_info["label"] + " (" + str(len(libros_estado)) + ")")
-            for idx, libro in libros_estado:
-                render_libro(libro, idx)
+        # ── Sub-pestañas por estado ────────────────────────────
+        def libros_para_subtab(estado_filtro):
+            """Devuelve libros donde AL MENOS UNA miembro tiene ese estado, o todos si es pendiente."""
+            if estado_filtro == "pendiente":
+                # pendiente = alguna miembro no ha leído aún (no tiene estado o es leyendo/pendiente)
+                resultado = []
+                for i, l in enumerate(libros):
+                    estados_m = l.get("estados_miembro", {})
+                    tiene_pendiente = any(
+                        estados_m.get(n, "pendiente") in ("pendiente", "sin_estado", "leyendo")
+                        for n in nombres_jugadoras
+                    )
+                    if tiene_pendiente:
+                        resultado.append((i, l))
+                return resultado
+            else:
+                return [
+                    (i, l) for i, l in enumerate(libros)
+                    if any(l.get("estados_miembro", {}).get(n) == estado_filtro for n in nombres_jugadoras)
+                ]
+
+        sub_leyendo  = libros_para_subtab("leyendo")
+        sub_leido    = libros_para_subtab("leido")
+        sub_pendiente= libros_para_subtab("pendiente")
+
+        stab1, stab2, stab3 = st.tabs([
+            "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
+            "✅ Leídos (" + str(len(sub_leido)) + ")",
+            "🕐 Pendientes (" + str(len(sub_pendiente)) + ")",
+        ])
+
+        def render_lista_libros(lista_libros, subtab_key):
+            if not lista_libros:
+                st.markdown(
+                    "<div style='text-align:center;padding:1.5rem;color:#a8d8bf;font-weight:600'>"
+                    "No hay libros aquí todavía 🐸</div>",
+                    unsafe_allow_html=True
+                )
+                return
+            for idx, libro in lista_libros:
+                render_libro_card(libro, idx, nombres_jugadoras)
 
                 with st.expander("✏️ Editar · " + libro["titulo"]):
+                    # Datos básicos
                     c1, c2 = st.columns(2)
                     with c1:
-                        ed_titulo = st.text_input("Título", value=libro["titulo"], key="ed_titulo_" + str(idx))
-                        ed_autora = st.text_input("Autora/Autor", value=libro.get("autora", ""), key="ed_autora_" + str(idx))
+                        ed_titulo = st.text_input("Título", value=libro["titulo"], key=subtab_key + "_titulo_" + str(idx))
+                        ed_autora = st.text_input("Autora/Autor", value=libro.get("autora", ""), key=subtab_key + "_autora_" + str(idx))
                     with c2:
-                        ed_estado = st.selectbox(
-                            "Estado",
-                            options=list(ESTADOS.keys()),
-                            format_func=lambda x: ESTADOS[x]["emoji"] + " " + ESTADOS[x]["label"],
-                            index=list(ESTADOS.keys()).index(libro.get("estado", "pendiente")),
-                            key="ed_estado_" + str(idx)
+                        st.write("")
+
+                    st.markdown("---")
+                    st.markdown("**👤 Estado, valoración y comentario por miembro:**")
+
+                    for nombre in nombres_jugadoras:
+                        st.markdown(
+                            "<div style='font-weight:700;color:#2d7a4f;font-size:14px;margin:8px 0 4px'>" + nombre + "</div>",
+                            unsafe_allow_html=True
+                        )
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            estado_actual = libro.get("estados_miembro", {}).get(nombre, "pendiente")
+                            ed_estado_m = st.selectbox(
+                                "Estado",
+                                options=["pendiente", "leyendo", "leido"],
+                                format_func=lambda x: {"pendiente": "🕐 Pendiente", "leyendo": "📖 Leyendo", "leido": "✅ Leído"}[x],
+                                index=["pendiente", "leyendo", "leido"].index(estado_actual),
+                                key=subtab_key + "_estm_" + nombre + "_" + str(idx)
+                            )
+                        with c2:
+                            val_actual = libro.get("valoraciones", {}).get(nombre, 0)
+                            ed_val_m = st.slider(
+                                "Valoración ⭐",
+                                min_value=0, max_value=5,
+                                value=val_actual if val_actual else 0,
+                                key=subtab_key + "_val_" + nombre + "_" + str(idx)
+                            )
+                        com_actual = libro.get("comentarios", {}).get(nombre, "")
+                        ed_com_m = st.text_area(
+                            "Comentario 💬",
+                            value=com_actual,
+                            placeholder="¿Qué piensa " + nombre + " del libro?",
+                            key=subtab_key + "_com_" + nombre + "_" + str(idx),
+                            height=70
                         )
 
-                    st.markdown("**⭐ Dejar valoración:**")
-                    c1, c2, c3 = st.columns([2, 2, 1])
-                    with c1:
-                        val_jugadora = st.selectbox(
-                            "¿Quién valora?",
-                            options=nombres_jugadoras,
-                            key="val_quien_" + str(idx)
-                        )
-                    with c2:
-                        val_actual = libro.get("valoraciones", {}).get(val_jugadora, 3)
-                        val_estrellas = st.slider(
-                            "Estrellas", min_value=1, max_value=5,
-                            value=val_actual if val_actual > 0 else 3,
-                            key="val_stars_" + str(idx)
-                        )
-                    with c3:
-                        st.write("")
-                        st.write("")
-                        if st.button("💾", key="val_save_" + str(idx), type="primary"):
+                        if st.button("💾 Guardar " + nombre, key=subtab_key + "_save_" + nombre + "_" + str(idx), type="primary"):
+                            if "estados_miembro" not in data["libros"][idx]:
+                                data["libros"][idx]["estados_miembro"] = {}
                             if "valoraciones" not in data["libros"][idx]:
                                 data["libros"][idx]["valoraciones"] = {}
-                            data["libros"][idx]["valoraciones"][val_jugadora] = val_estrellas
+                            if "comentarios" not in data["libros"][idx]:
+                                data["libros"][idx]["comentarios"] = {}
+                            data["libros"][idx]["estados_miembro"][nombre] = ed_estado_m
+                            data["libros"][idx]["valoraciones"][nombre] = ed_val_m
+                            data["libros"][idx]["comentarios"][nombre] = ed_com_m.strip()
                             data["libros"][idx]["titulo"] = ed_titulo.strip() or libro["titulo"]
                             data["libros"][idx]["autora"] = ed_autora.strip()
-                            data["libros"][idx]["estado"] = ed_estado
                             save_data(data)
-                            st.success("¡Valoración de " + val_jugadora + " guardada! 🐸")
+                            st.success("¡Guardado! 🐸")
                             st.rerun()
 
+                        st.markdown("<div style='border-bottom:1px solid #e0f0e8;margin:6px 0'></div>", unsafe_allow_html=True)
+
+                    # Eliminar libro
                     st.write("")
-                    if st.button("🗑️ Eliminar libro", key="del_lib_" + str(idx)):
+                    if st.button("🗑️ Eliminar libro", key=subtab_key + "_del_" + str(idx)):
                         data["libros"].pop(idx)
                         save_data(data)
                         st.rerun()
 
-            st.divider()
+        with stab1:
+            render_lista_libros(sub_leyendo, "ley")
+        with stab2:
+            render_lista_libros(sub_leido, "lei")
+        with stab3:
+            render_lista_libros(sub_pendiente, "pen")
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
