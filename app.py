@@ -444,38 +444,46 @@ with tab_libros:
                     st.markdown("---")
                     st.markdown("**👤 ¿Quién quiere actualizar su estado?**")
 
-                    # Selector de miembro — un solo set de campos para la seleccionada
+                    # Selector de miembro — la key incluye idx para aislarlo por libro
+                    quien_key = subtab_key + "_quien_" + str(idx)
                     nombre_sel = st.selectbox(
                         "Miembro",
                         options=nombres_jugadoras,
-                        key=subtab_key + "_quien_" + str(idx)
+                        key=quien_key
                     )
+
+                    # Las keys de los campos incluyen el nombre: al cambiar miembro, son campos distintos
+                    estm_key = subtab_key + "_estm_" + str(idx) + "_" + nombre_sel
+                    val_key  = subtab_key + "_val_"  + str(idx) + "_" + nombre_sel
+                    com_key  = subtab_key + "_com_"  + str(idx) + "_" + nombre_sel
+
+                    # Cargar valores guardados de esta miembro como default (solo si la key no existe aún)
+                    if estm_key not in st.session_state:
+                        st.session_state[estm_key] = libro.get("estados_miembro", {}).get(nombre_sel, "pendiente")
+                    if val_key not in st.session_state:
+                        st.session_state[val_key] = libro.get("valoraciones", {}).get(nombre_sel, 0) or 0
+                    if com_key not in st.session_state:
+                        st.session_state[com_key] = libro.get("comentarios", {}).get(nombre_sel, "")
 
                     c1, c2 = st.columns(2)
                     with c1:
-                        estado_actual = libro.get("estados_miembro", {}).get(nombre_sel, "pendiente")
                         ed_estado_m = st.selectbox(
                             "Estado",
                             options=["pendiente", "leyendo", "leido"],
                             format_func=lambda x: {"pendiente": "🕐 Pendiente", "leyendo": "📖 Leyendo", "leido": "✅ Leído"}[x],
-                            index=["pendiente", "leyendo", "leido"].index(estado_actual),
-                            key=subtab_key + "_estm_" + str(idx)
+                            key=estm_key
                         )
                     with c2:
-                        val_actual = libro.get("valoraciones", {}).get(nombre_sel, 0)
                         ed_val_m = st.slider(
                             "Valoración ⭐",
                             min_value=0, max_value=5,
-                            value=val_actual if val_actual else 0,
-                            key=subtab_key + "_val_" + str(idx)
+                            key=val_key
                         )
 
-                    com_actual = libro.get("comentarios", {}).get(nombre_sel, "")
                     ed_com_m = st.text_area(
                         "Comentario 💬",
-                        value=com_actual,
                         placeholder="¿Qué piensa " + nombre_sel + " del libro?",
-                        key=subtab_key + "_com_" + str(idx),
+                        key=com_key,
                         height=80
                     )
 
@@ -494,15 +502,10 @@ with tab_libros:
                             data["libros"][idx]["titulo"] = ed_titulo.strip() or libro["titulo"]
                             data["libros"][idx]["autora"] = ed_autora.strip()
                             save_data(data)
-                            # Limpiar campos para que no interfieran con la siguiente miembro
-                            for key in [
-                                subtab_key + "_quien_" + str(idx),
-                                subtab_key + "_estm_" + str(idx),
-                                subtab_key + "_val_" + str(idx),
-                                subtab_key + "_com_" + str(idx),
-                            ]:
-                                if key in st.session_state:
-                                    del st.session_state[key]
+                            # Borrar keys de esta miembro para que recarguen desde data la próxima vez
+                            for k in [estm_key, val_key, com_key, quien_key]:
+                                if k in st.session_state:
+                                    del st.session_state[k]
                             st.success("¡Guardado para " + nombre_sel + "! 🐸")
                             st.rerun()
                     with cc2:
