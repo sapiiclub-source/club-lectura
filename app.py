@@ -440,68 +440,68 @@ with tab_libros:
                     with c1:
                         ed_titulo = st.text_input("Título", value=libro["titulo"], key=subtab_key + "_titulo_" + str(idx))
                         ed_autora = st.text_input("Autora/Autor", value=libro.get("autora", ""), key=subtab_key + "_autora_" + str(idx))
-                    with c2:
-                        st.write("")
 
                     st.markdown("---")
-                    st.markdown("**👤 Estado, valoración y comentario por miembro:**")
+                    st.markdown("**👤 ¿Quién quiere actualizar su estado?**")
 
-                    for nombre in nombres_jugadoras:
-                        st.markdown(
-                            "<div style='font-weight:700;color:#2d7a4f;font-size:14px;margin:8px 0 4px'>" + nombre + "</div>",
-                            unsafe_allow_html=True
+                    # Selector de miembro — un solo set de campos para la seleccionada
+                    nombre_sel = st.selectbox(
+                        "Miembro",
+                        options=nombres_jugadoras,
+                        key=subtab_key + "_quien_" + str(idx)
+                    )
+
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        estado_actual = libro.get("estados_miembro", {}).get(nombre_sel, "pendiente")
+                        ed_estado_m = st.selectbox(
+                            "Estado",
+                            options=["pendiente", "leyendo", "leido"],
+                            format_func=lambda x: {"pendiente": "🕐 Pendiente", "leyendo": "📖 Leyendo", "leido": "✅ Leído"}[x],
+                            index=["pendiente", "leyendo", "leido"].index(estado_actual),
+                            key=subtab_key + "_estm_" + str(idx)
                         )
-                        c1, c2 = st.columns(2)
-                        with c1:
-                            estado_actual = libro.get("estados_miembro", {}).get(nombre, "pendiente")
-                            ed_estado_m = st.selectbox(
-                                "Estado",
-                                options=["pendiente", "leyendo", "leido"],
-                                format_func=lambda x: {"pendiente": "🕐 Pendiente", "leyendo": "📖 Leyendo", "leido": "✅ Leído"}[x],
-                                index=["pendiente", "leyendo", "leido"].index(estado_actual),
-                                key=subtab_key + "_estm_" + nombre + "_" + str(idx)
-                            )
-                        with c2:
-                            val_actual = libro.get("valoraciones", {}).get(nombre, 0)
-                            ed_val_m = st.slider(
-                                "Valoración ⭐",
-                                min_value=0, max_value=5,
-                                value=val_actual if val_actual else 0,
-                                key=subtab_key + "_val_" + nombre + "_" + str(idx)
-                            )
-                        com_actual = libro.get("comentarios", {}).get(nombre, "")
-                        ed_com_m = st.text_area(
-                            "Comentario 💬",
-                            value=com_actual,
-                            placeholder="¿Qué piensa " + nombre + " del libro?",
-                            key=subtab_key + "_com_" + nombre + "_" + str(idx),
-                            height=70
+                    with c2:
+                        val_actual = libro.get("valoraciones", {}).get(nombre_sel, 0)
+                        ed_val_m = st.slider(
+                            "Valoración ⭐",
+                            min_value=0, max_value=5,
+                            value=val_actual if val_actual else 0,
+                            key=subtab_key + "_val_" + str(idx)
                         )
 
-                        if st.button("💾 Guardar " + nombre, key=subtab_key + "_save_" + nombre + "_" + str(idx), type="primary"):
+                    com_actual = libro.get("comentarios", {}).get(nombre_sel, "")
+                    ed_com_m = st.text_area(
+                        "Comentario 💬",
+                        value=com_actual,
+                        placeholder="¿Qué piensa " + nombre_sel + " del libro?",
+                        key=subtab_key + "_com_" + str(idx),
+                        height=80
+                    )
+
+                    cc1, cc2 = st.columns([3, 1])
+                    with cc1:
+                        if st.button("💾 Guardar para " + nombre_sel, key=subtab_key + "_save_" + str(idx), type="primary"):
                             if "estados_miembro" not in data["libros"][idx]:
                                 data["libros"][idx]["estados_miembro"] = {}
                             if "valoraciones" not in data["libros"][idx]:
                                 data["libros"][idx]["valoraciones"] = {}
                             if "comentarios" not in data["libros"][idx]:
                                 data["libros"][idx]["comentarios"] = {}
-                            data["libros"][idx]["estados_miembro"][nombre] = ed_estado_m
-                            data["libros"][idx]["valoraciones"][nombre] = ed_val_m
-                            data["libros"][idx]["comentarios"][nombre] = ed_com_m.strip()
+                            data["libros"][idx]["estados_miembro"][nombre_sel] = ed_estado_m
+                            data["libros"][idx]["valoraciones"][nombre_sel] = ed_val_m
+                            data["libros"][idx]["comentarios"][nombre_sel] = ed_com_m.strip()
                             data["libros"][idx]["titulo"] = ed_titulo.strip() or libro["titulo"]
                             data["libros"][idx]["autora"] = ed_autora.strip()
                             save_data(data)
-                            st.success("¡Guardado! 🐸")
+                            st.success("¡Guardado para " + nombre_sel + "! 🐸")
                             st.rerun()
-
-                        st.markdown("<div style='border-bottom:1px solid #e0f0e8;margin:6px 0'></div>", unsafe_allow_html=True)
-
-                    # Eliminar libro
-                    st.write("")
-                    if st.button("🗑️ Eliminar libro", key=subtab_key + "_del_" + str(idx)):
-                        data["libros"].pop(idx)
-                        save_data(data)
-                        st.rerun()
+                    with cc2:
+                        st.write("")
+                        if st.button("🗑️ Eliminar", key=subtab_key + "_del_" + str(idx)):
+                            data["libros"].pop(idx)
+                            save_data(data)
+                            st.rerun()
 
         with stab1:
             render_lista_libros(sub_leyendo, "ley")
