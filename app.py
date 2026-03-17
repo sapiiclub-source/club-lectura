@@ -139,7 +139,7 @@ st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
     <div style='font-size:52px;line-height:1.1'>🐸</div>
     <h1 style='font-size:2.2rem;font-weight:800;color:#2d7a4f;margin:4px 0 0'>Sapi Club</h1>
-    <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura kawaii ✨</p>
+    <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
 """, unsafe_allow_html=True)
 
