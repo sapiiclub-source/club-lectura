@@ -494,6 +494,15 @@ with tab_libros:
                             data["libros"][idx]["titulo"] = ed_titulo.strip() or libro["titulo"]
                             data["libros"][idx]["autora"] = ed_autora.strip()
                             save_data(data)
+                            # Limpiar campos para que no interfieran con la siguiente miembro
+                            for key in [
+                                subtab_key + "_quien_" + str(idx),
+                                subtab_key + "_estm_" + str(idx),
+                                subtab_key + "_val_" + str(idx),
+                                subtab_key + "_com_" + str(idx),
+                            ]:
+                                if key in st.session_state:
+                                    del st.session_state[key]
                             st.success("¡Guardado para " + nombre_sel + "! 🐸")
                             st.rerun()
                     with cc2:
