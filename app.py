@@ -84,6 +84,22 @@ def promedio_vals(libro):
 data = load_data()
 nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
+# ── Menú hamburguesa (antes del header) ────────────────────
+TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"]
+if "menu_abierto" not in st.session_state: st.session_state["menu_abierto"] = False
+
+if st.button("☰  Menú", key="hamburger"):
+    st.session_state["menu_abierto"] = not st.session_state["menu_abierto"]
+
+if st.session_state["menu_abierto"]:
+    menu_cols = st.columns(len(TABS))
+    for i, tab_name in enumerate(TABS):
+        with menu_cols[i]:
+            if st.button(tab_name, key="nav_" + tab_name, use_container_width=True):
+                st.session_state["menu_abierto"] = False
+                st.rerun()
+    st.divider()
+
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
@@ -95,7 +111,6 @@ st.markdown("""
 
 # Libro actual destacado
 if data.get("libro_actual"):
-    # Buscar portada del libro actual
     portada_actual = ""
     autora_actual = ""
     for _lb in data.get("libros", []):
@@ -120,62 +135,6 @@ if data.get("libro_actual"):
 
 st.divider()
 
-# ── Menú hamburguesa ───────────────────────────────────────
-TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"]
-if "menu_abierto" not in st.session_state: st.session_state["menu_abierto"] = False
-if "tab_activa" not in st.session_state: st.session_state["tab_activa"] = "🏆 Puntos"
-
-col_ham, col_title = st.columns([1, 6])
-with col_ham:
-    if st.button("☰", key="hamburger"):
-        st.session_state["menu_abierto"] = not st.session_state["menu_abierto"]
-with col_title:
-    st.markdown(
-        "<div style='font-size:15px;font-weight:700;color:#2d7a4f;padding-top:6px'>" +
-        st.session_state["tab_activa"] + "</div>",
-        unsafe_allow_html=True
-    )
-
-if st.session_state["menu_abierto"]:
-    _libros = data.get("libros", [])
-    _leidos = sum(1 for l in _libros if all(l.get("estados_miembro",{}).get(n)=="leido" for n in nombres_jugadoras))
-    _top = sorted(data["jugadoras"], key=lambda x: x["puntos"], reverse=True)
-
-    st.markdown(
-        "<div style='background:white;border:2px solid #c5ebd8;border-radius:20px;padding:16px 20px;margin-bottom:12px'>"
-        "<div style='font-weight:800;color:#2d7a4f;font-size:15px;margin-bottom:12px'>📍 Ir a sección</div>"
-        "</div>",
-        unsafe_allow_html=True
-    )
-    menu_cols = st.columns(len(TABS))
-    for i, tab_name in enumerate(TABS):
-        with menu_cols[i]:
-            is_active = st.session_state["tab_activa"] == tab_name
-            if st.button(
-                tab_name,
-                key="nav_" + tab_name,
-                type="primary" if is_active else "secondary",
-                use_container_width=True
-            ):
-                st.session_state["tab_activa"] = tab_name
-                st.session_state["menu_abierto"] = False
-                st.rerun()
-
-    st.markdown(
-        "<div style='background:white;border:2px solid #c5ebd8;border-radius:20px;padding:14px 20px;margin-bottom:12px'>"
-        "<div style='display:flex;gap:16px;flex-wrap:wrap;align-items:center'>"
-        "<div style='text-align:center'><div style='font-size:20px;font-weight:800;color:#2d7a4f'>" + str(len(_libros)) + "</div><div style='font-size:11px;color:#2d7a4f;font-weight:600'>libros</div></div>"
-        "<div style='text-align:center'><div style='font-size:20px;font-weight:800;color:#1a6a8a'>" + str(_leidos) + "</div><div style='font-size:11px;color:#1a6a8a;font-weight:600'>leídos por todas</div></div>"
-        + ("<div style='font-size:13px;color:#2d7a4f;font-weight:600'>📖 " + data["libro_actual"] + "</div>" if data.get("libro_actual") else "") +
-        "<div style='margin-left:auto'>" +
-        "  ".join(["🥇🥈🥉"[i] + " <b>" + j["nombre"] + "</b> " + str(j["puntos"]) + "pts" for i, j in enumerate(_top[:3])]) +
-        "</div></div></div>",
-        unsafe_allow_html=True
-    )
-
-st.divider()
-
-# Navegación por session_state en vez de tabs nativas
 tab_puntos, tab_biblioteca, tab_lecturas, tab_agenda, tab_stats = st.tabs(TABS)
 
 
