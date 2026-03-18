@@ -1,10 +1,9 @@
 import streamlit as st
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
-
 DATA_FILE = "data.json"
 
 st.markdown("""
@@ -13,8 +12,7 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Nunito', sans-serif !important; }
 .stApp { background: linear-gradient(135deg, #e8f8f0 0%, #e0f4fb 50%, #fce8f3 100%); min-height: 100vh; }
 .main .block-container { padding-top: 1.5rem; max-width: 700px; }
-h1 { color: #2d7a4f !important; }
-h2, h3 { color: #2d7a4f !important; }
+h1 { color: #2d7a4f !important; } h2, h3 { color: #2d7a4f !important; }
 .stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #3dba75, #2d9e62) !important;
     color: white !important; border: none !important; border-radius: 20px !important;
@@ -22,74 +20,71 @@ h2, h3 { color: #2d7a4f !important; }
     font-size: 15px !important; padding: 10px 20px !important;
     box-shadow: 0 4px 12px rgba(45,154,98,0.3) !important;
 }
-.stButton > button[kind="primary"]:hover {
-    background: linear-gradient(135deg, #2d9e62, #236e47) !important;
-    transform: translateY(-1px); box-shadow: 0 6px 16px rgba(45,154,98,0.4) !important;
-}
-.stButton > button[kind="secondary"], .stButton > button {
-    background: white !important; color: #2d7a4f !important;
-    border: 2px solid #a8e6c4 !important; border-radius: 20px !important;
-    font-family: 'Nunito', sans-serif !important; font-weight: 600 !important;
-}
+.stButton > button[kind="primary"]:hover { background: linear-gradient(135deg, #2d9e62, #236e47) !important; transform: translateY(-1px); }
+.stButton > button[kind="secondary"], .stButton > button { background: white !important; color: #2d7a4f !important; border: 2px solid #a8e6c4 !important; border-radius: 20px !important; font-family: 'Nunito', sans-serif !important; font-weight: 600 !important; }
 .stButton > button:hover { border-color: #3dba75 !important; background: #f0faf5 !important; }
-.stSelectbox > div > div { border-radius: 14px !important; border-color: #a8e6c4 !important; background: white !important; font-family: 'Nunito', sans-serif !important; }
-.stTextInput > div > div > input, .stNumberInput > div > div > input { border-radius: 14px !important; border-color: #a8e6c4 !important; background: white !important; font-family: 'Nunito', sans-serif !important; }
-.streamlit-expanderHeader { background: white !important; border-radius: 16px !important; border: 2px solid #d4f0e4 !important; color: #2d7a4f !important; font-family: 'Nunito', sans-serif !important; font-weight: 700 !important; }
+.stSelectbox > div > div { border-radius: 14px !important; border-color: #a8e6c4 !important; background: white !important; }
+.stTextInput > div > div > input, .stNumberInput > div > div > input { border-radius: 14px !important; border-color: #a8e6c4 !important; background: white !important; }
+.streamlit-expanderHeader { background: white !important; border-radius: 16px !important; border: 2px solid #d4f0e4 !important; color: #2d7a4f !important; font-weight: 700 !important; }
 .streamlit-expanderContent { background: #f7fefb !important; border: 2px solid #d4f0e4 !important; border-top: none !important; border-radius: 0 0 16px 16px !important; }
 hr { border-color: #c5ebd8 !important; }
-.stAlert { border-radius: 16px !important; font-family: 'Nunito', sans-serif !important; }
-.stCaption { color: #6abf8a !important; font-family: 'Nunito', sans-serif !important; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #e8f8f0; }
-::-webkit-scrollbar-thumb { background: #a8e6c4; border-radius: 10px; }
+.stAlert { border-radius: 16px !important; }
+.stCaption { color: #6abf8a !important; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #e8f8f0; } ::-webkit-scrollbar-thumb { background: #a8e6c4; border-radius: 10px; }
 div[data-testid="stTabs"] button { font-family: 'Nunito', sans-serif !important; font-weight: 700 !important; font-size: 15px !important; color: #2d7a4f !important; }
 </style>
 """, unsafe_allow_html=True)
 
+GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Otro"]
 
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             d = json.load(f)
-        if "libros" not in d:
-            d["libros"] = []
+        if "libros" not in d: d["libros"] = []
+        if "agenda" not in d: d["agenda"] = []
+        if "meta_anio" not in d: d["meta_anio"] = 12
+        if "libro_actual" not in d: d["libro_actual"] = ""
+        if "historial_puntos" not in d: d["historial_puntos"] = {}
         for libro in d["libros"]:
-            # migrar formato viejo
-            if "valoraciones" not in libro:
-                libro["valoraciones"] = {}
-            if "estados_miembro" not in libro:
-                libro["estados_miembro"] = {}
-            if "comentarios" not in libro:
-                libro["comentarios"] = {}
-            libro.pop("valoracion", None)
-            libro.pop("comentario", None)
+            if "valoraciones" not in libro: libro["valoraciones"] = {}
+            if "estados_miembro" not in libro: libro["estados_miembro"] = {}
+            if "comentarios" not in libro: libro["comentarios"] = {}
+            if "genero" not in libro: libro["genero"] = "Sin género"
+            if "portada_url" not in libro: libro["portada_url"] = ""
+            if "fecha_inicio" not in libro: libro["fecha_inicio"] = ""
+            if "fecha_fin" not in libro: libro["fecha_fin"] = ""
+            libro.pop("valoracion", None); libro.pop("comentario", None)
         return d
     return {
-        "jugadoras": [
-            {"nombre": "Sapi 1", "puntos": 0},
-            {"nombre": "Sapi 2", "puntos": 0},
-            {"nombre": "Sapi 3", "puntos": 0},
-        ],
+        "jugadoras": [{"nombre": "Sapi 1", "puntos": 0}, {"nombre": "Sapi 2", "puntos": 0}, {"nombre": "Sapi 3", "puntos": 0}],
         "reglas": [
-            {"nombre": "Leyó el capítulo completo", "puntos": 3},
-            {"nombre": "Llegó a tiempo", "puntos": 2},
-            {"nombre": "Aportó al debate", "puntos": 2},
-            {"nombre": "No leyó", "puntos": -3},
-            {"nombre": "Llegó tarde", "puntos": -1},
-            {"nombre": "Spoileó sin avisar", "puntos": -2},
+            {"nombre": "Leyó el capítulo completo", "puntos": 3}, {"nombre": "Llegó a tiempo", "puntos": 2},
+            {"nombre": "Aportó al debate", "puntos": 2}, {"nombre": "No leyó", "puntos": -3},
+            {"nombre": "Llegó tarde", "puntos": -1}, {"nombre": "Spoileó sin avisar", "puntos": -2},
         ],
-        "historial": [],
-        "libros": []
+        "historial": [], "historial_puntos": {}, "libros": [],
+        "agenda": [], "meta_anio": 12, "libro_actual": ""
     }
-
 
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+def estrellas(n):
+    if not n: return "☆☆☆☆☆"
+    n_round = round(n)
+    return "⭐" * n_round + "☆" * (5 - n_round)
+
+def promedio_vals(libro):
+    vals = libro.get("valoraciones", {})
+    valores = [v for v in vals.values() if v and v > 0]
+    return round(sum(valores) / len(valores), 1) if valores else 0
 
 data = load_data()
+nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
+# ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
     <div style='font-size:52px;line-height:1.1'>🐸</div>
@@ -98,46 +93,101 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Libro actual destacado
+if data.get("libro_actual"):
+    st.markdown(
+        "<div style='background:linear-gradient(135deg,#d4f0e4,#d4edf7);border:2px solid #3dba75;"
+        "border-radius:18px;padding:12px 18px;margin:8px 0;text-align:center'>"
+        "<span style='font-size:13px;color:#2d7a4f;font-weight:700'>📖 Leyendo ahora en el club</span><br>"
+        "<span style='font-size:18px;font-weight:800;color:#1a6a8a'>" + data["libro_actual"] + "</span></div>",
+        unsafe_allow_html=True
+    )
+
 st.divider()
 
-tab_puntos, tab_libros = st.tabs(["🏆 Puntos", "📚 Libros"])
+tab_puntos, tab_libros, tab_agenda, tab_stats = st.tabs(["🏆 Puntos", "📚 Libros", "📅 Agenda", "📊 Estadísticas"])
 
 
 # ╔══════════════════════╗
 # ║    TAB: PUNTOS       ║
 # ╚══════════════════════╝
 with tab_puntos:
-
     st.markdown("### 🏆 Marcador")
     sorted_j = sorted(enumerate(data["jugadoras"]), key=lambda x: x[1]["puntos"], reverse=True)
     cols = st.columns(len(data["jugadoras"]))
-    card_colors   = ["#d4f0e4", "#d4edf7", "#fce8f3"]
-    text_colors   = ["#2d7a4f", "#1a6a8a", "#a0417a"]
-    border_colors = ["#3dba75", "#5bc0e8", "#e87fbf"]
-    card_icons    = ["🐸", "🐟", "🌸"]
+    card_colors = ["#d4f0e4","#d4edf7","#fce8f3"]; text_colors = ["#2d7a4f","#1a6a8a","#a0417a"]
+    border_colors = ["#3dba75","#5bc0e8","#e87fbf"]; card_icons = ["🐸","🐟","🌸"]
 
     for col_idx, (j_idx, j) in enumerate(sorted_j):
         with cols[col_idx]:
             pts = j["puntos"]
             pts_color = "#2d7a4f" if pts > 0 else ("#c0392b" if pts < 0 else "#888")
             lider = col_idx == 0 and pts > 0
-            bg  = card_colors[col_idx % len(card_colors)]
-            tc  = text_colors[col_idx % len(text_colors)]
-            bc  = border_colors[col_idx % len(border_colors)] if lider else "#ddd"
-            bw  = "2.5px" if lider else "1.5px"
-            icon = card_icons[col_idx % len(card_icons)]
-            crown = "⭐ " if lider else ""
+            bg = card_colors[col_idx % 3]; tc = text_colors[col_idx % 3]
+            bc = border_colors[col_idx % 3] if lider else "#ddd"; bw = "2.5px" if lider else "1.5px"
+            icon = card_icons[col_idx % 3]; crown = "⭐ " if lider else ""
             st.markdown(
-                "<div style='text-align:center;padding:14px 8px 10px;background:" + bg +
-                ";border:" + bw + " solid " + bc + ";border-radius:20px;margin-bottom:4px;"
-                "box-shadow:0 4px 12px rgba(0,0,0,0.06)'>"
+                "<div style='text-align:center;padding:14px 8px 10px;background:" + bg + ";border:" + bw + " solid " + bc + ";border-radius:20px;margin-bottom:4px;box-shadow:0 4px 12px rgba(0,0,0,0.06)'>"
                 "<div style='font-size:28px'>" + icon + "</div>"
                 "<div style='font-weight:800;color:" + tc + ";font-size:14px;margin:4px 0 2px'>" + crown + j["nombre"] + "</div>"
-                "<div style='font-size:30px;font-weight:800;color:" + pts_color + ";line-height:1.1'>" +
-                ("+" if pts > 0 else "") + str(pts) + "</div>"
+                "<div style='font-size:30px;font-weight:800;color:" + pts_color + ";line-height:1.1'>" + ("+" if pts > 0 else "") + str(pts) + "</div>"
                 "<div style='font-size:11px;color:#999;font-weight:600'>puntos</div></div>",
                 unsafe_allow_html=True
             )
+
+    # Medallas
+    st.divider()
+    st.markdown("### 🏅 Medallas")
+    pts_list = [(j["nombre"], j["puntos"]) for j in data["jugadoras"]]
+    lider_nombre = max(pts_list, key=lambda x: x[1])[0] if pts_list else ""
+    
+    libros_leidos_por = {}
+    for libro in data.get("libros", []):
+        for n in nombres_jugadoras:
+            if libro.get("estados_miembro", {}).get(n) == "leido":
+                libros_leidos_por[n] = libros_leidos_por.get(n, 0) + 1
+    mas_lectora = max(libros_leidos_por, key=libros_leidos_por.get) if libros_leidos_por else ""
+
+    medallas_html = "<div style='display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px'>"
+    if lider_nombre:
+        medallas_html += (
+            "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
+            "<div style='font-size:24px'>🏅</div>"
+            "<div style='font-weight:800;color:#854F0B;font-size:13px'>Lectora del mes</div>"
+            "<div style='font-weight:700;color:#633806;font-size:15px'>" + lider_nombre + "</div></div>"
+        )
+    if mas_lectora:
+        medallas_html += (
+            "<div style='background:#d4f0e4;border:2px solid #3dba75;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
+            "<div style='font-size:24px'>📚</div>"
+            "<div style='font-weight:800;color:#2d7a4f;font-size:13px'>Más libros leídos</div>"
+            "<div style='font-weight:700;color:#2d7a4f;font-size:15px'>" + mas_lectora + " (" + str(libros_leidos_por[mas_lectora]) + ")</div></div>"
+        )
+    # Medalla puntual perfecta: la que nunca tiene puntos negativos en historial
+    medallas_html += "</div>"
+    st.markdown(medallas_html, unsafe_allow_html=True)
+
+    # Gráfico evolución de puntos
+    st.divider()
+    st.markdown("### 📈 Evolución de puntos")
+    historial_pts = data.get("historial_puntos", {})
+    if historial_pts and any(len(v) > 1 for v in historial_pts.values()):
+        try:
+            import pandas as pd
+            df_data = {}
+            max_len = max(len(v) for v in historial_pts.values())
+            for nombre, vals in historial_pts.items():
+                padded = vals + [vals[-1]] * (max_len - len(vals))
+                df_data[nombre] = padded
+            df = pd.DataFrame(df_data)
+            st.line_chart(df, use_container_width=True)
+        except Exception:
+            st.caption("Instala pandas para ver el gráfico.")
+    else:
+        st.markdown(
+            "<div style='text-align:center;padding:1rem;color:#a8d8bf;font-weight:600;font-size:13px'>"
+            "El gráfico aparecerá cuando haya más movimientos 📈</div>", unsafe_allow_html=True
+        )
 
     st.divider()
     st.markdown("### ⚡ Aplicar regla")
@@ -157,59 +207,56 @@ with tab_puntos:
         hora = datetime.now().strftime("%H:%M")
         accion = hora + " — " + jugadora_sel + ': "' + data["reglas"][r_idx]["nombre"] + '" → ' + ("+" if pts > 0 else "") + str(pts) + " pts"
         data["historial"].insert(0, accion)
-        data["historial"] = data["historial"][:30]
+        data["historial"] = data["historial"][:50]
+        # Guardar snapshot de puntos para gráfico
+        hp = data.setdefault("historial_puntos", {})
+        for j in data["jugadoras"]:
+            hp.setdefault(j["nombre"], []).append(j["puntos"])
+            hp[j["nombre"]] = hp[j["nombre"]][-50:]
         save_data(data)
         st.success(("🎉" if pts > 0 else "😬") + " " + accion)
         st.rerun()
 
     st.divider()
-
-    with st.expander("✏️ Sumar / restar puntos manualmente"):
+    with st.expander("✏️ Sumar / restar manualmente"):
         c1, c2, c3 = st.columns([2,1,1])
-        with c1:
-            j_manual = st.selectbox("Jugadora", nombres, key="manual_j")
-        with c2:
-            pts_manual = st.number_input("Puntos", value=1, step=1, key="manual_pts")
+        with c1: j_manual = st.selectbox("Jugadora", nombres, key="manual_j")
+        with c2: pts_manual = st.number_input("Puntos", value=1, step=1, key="manual_pts")
         with c3:
-            st.write("")
-            st.write("")
+            st.write(""); st.write("")
             if st.button("Aplicar", key="btn_manual"):
                 j_idx = nombres.index(j_manual)
                 data["jugadoras"][j_idx]["puntos"] += pts_manual
                 hora = datetime.now().strftime("%H:%M")
                 data["historial"].insert(0, hora + " — " + j_manual + ": " + ("+" if pts_manual > 0 else "") + str(pts_manual) + " pts (manual)")
-                data["historial"] = data["historial"][:30]
+                data["historial"] = data["historial"][:50]
+                hp = data.setdefault("historial_puntos", {})
+                for j in data["jugadoras"]:
+                    hp.setdefault(j["nombre"], []).append(j["puntos"])
+                    hp[j["nombre"]] = hp[j["nombre"]][-50:]
                 save_data(data)
                 st.rerun()
 
     with st.expander("📋 Ver y editar reglas"):
         for i, r in enumerate(data["reglas"]):
             c1, c2, c3 = st.columns([3,1,1])
-            with c1:
-                st.write(r["nombre"])
+            with c1: st.write(r["nombre"])
             with c2:
-                pts = r["puntos"]
-                color = "#2d7a4f" if pts > 0 else "#c0392b"
-                st.markdown("<span style='color:" + color + ";font-weight:700;font-family:Nunito,sans-serif'>" + ("+" if pts > 0 else "") + str(pts) + "</span>", unsafe_allow_html=True)
+                pts = r["puntos"]; color = "#2d7a4f" if pts > 0 else "#c0392b"
+                st.markdown("<span style='color:" + color + ";font-weight:700'>" + ("+" if pts > 0 else "") + str(pts) + "</span>", unsafe_allow_html=True)
             with c3:
                 if st.button("🗑️", key="del_r_" + str(i)):
-                    data["reglas"].pop(i)
-                    save_data(data)
-                    st.rerun()
+                    data["reglas"].pop(i); save_data(data); st.rerun()
         st.write("**Agregar regla nueva:**")
         c1, c2, c3 = st.columns([3,1,1])
-        with c1:
-            nueva_regla = st.text_input("Nombre", placeholder="Ej: Trajo snacks 🍿", key="nueva_r")
-        with c2:
-            nuevos_pts = st.number_input("Pts", value=1, step=1, key="nueva_pts")
+        with c1: nueva_regla = st.text_input("Nombre", placeholder="Ej: Trajo snacks 🍿", key="nueva_r")
+        with c2: nuevos_pts = st.number_input("Pts", value=1, step=1, key="nueva_pts")
         with c3:
-            st.write("")
-            st.write("")
+            st.write(""); st.write("")
             if st.button("Agregar", key="btn_add_r"):
                 if nueva_regla.strip():
                     data["reglas"].append({"nombre": nueva_regla.strip(), "puntos": nuevos_pts})
-                    save_data(data)
-                    st.rerun()
+                    save_data(data); st.rerun()
 
     with st.expander("👥 Editar jugadoras"):
         for i, j in enumerate(data["jugadoras"]):
@@ -217,39 +264,31 @@ with tab_puntos:
             with c1:
                 nuevo_nombre = st.text_input("Nombre", value=j["nombre"], key="nombre_" + str(i))
                 if nuevo_nombre != j["nombre"]:
-                    data["jugadoras"][i]["nombre"] = nuevo_nombre
-                    save_data(data)
+                    data["jugadoras"][i]["nombre"] = nuevo_nombre; save_data(data)
             with c2:
                 if len(data["jugadoras"]) > 1:
                     st.write("")
                     if st.button("🗑️", key="del_j_" + str(i)):
-                        data["jugadoras"].pop(i)
-                        save_data(data)
-                        st.rerun()
+                        data["jugadoras"].pop(i); save_data(data); st.rerun()
         nueva_j = st.text_input("Nueva jugadora", placeholder="Nombre 🐸", key="nueva_j")
         if st.button("Agregar jugadora"):
             if nueva_j.strip():
                 data["jugadoras"].append({"nombre": nueva_j.strip(), "puntos": 0})
-                save_data(data)
-                st.rerun()
+                save_data(data); st.rerun()
 
     with st.expander("📜 Historial"):
         if data["historial"]:
-            for h in data["historial"]:
-                st.caption("🐸 " + h)
-        else:
-            st.caption("Sin movimientos aún... ¡empieza a leer! 📖")
+            for h in data["historial"]: st.caption("🐸 " + h)
+        else: st.caption("Sin movimientos aún... ¡empieza a leer! 📖")
 
     st.divider()
-
     with st.expander("⚠️ Zona peligrosa"):
         st.markdown("<p style='color:#e87fbf;font-weight:700'>¿Segura? Esto borrará todos los puntos 😬</p>", unsafe_allow_html=True)
         if st.button("🔄 Reiniciar todos los puntos a cero", type="secondary"):
-            for j in data["jugadoras"]:
-                j["puntos"] = 0
+            for j in data["jugadoras"]: j["puntos"] = 0
+            data["historial_puntos"] = {}
             data["historial"].insert(0, datetime.now().strftime("%H:%M") + " — Puntos reiniciados 🔄")
-            save_data(data)
-            st.rerun()
+            save_data(data); st.rerun()
 
 
 # ╔══════════════════════╗
@@ -264,19 +303,7 @@ with tab_libros:
         "sin_estado":{"label": "Sin estado","emoji": "·",  "color": "#f1f1f1", "border": "#ccc",    "text": "#999"},
     }
 
-    def estrellas(n):
-        if not n:
-            return "☆☆☆☆☆"
-        n_round = round(n)
-        return "⭐" * n_round + "☆" * (5 - n_round)
-
-    def promedio_vals(libro):
-        vals = libro.get("valoraciones", {})
-        valores = [v for v in vals.values() if v and v > 0]
-        return round(sum(valores) / len(valores), 1) if valores else 0
-
     def render_tarjeta_miembro(nombre, estado_key, val, comentario):
-        """Renderiza la tarjeta pequeña de una miembro para un libro."""
         em = ESTADOS_M.get(estado_key, ESTADOS_M["sin_estado"])
         stars = estrellas(val) if val and val > 0 else ""
         val_str = " " + str(val) + "/5" if val and val > 0 else ""
@@ -291,131 +318,154 @@ with tab_libros:
             "<div style='background:" + em["color"] + ";border:1.5px solid " + em["border"] + ";"
             "border-radius:14px;padding:10px 12px;flex:1;min-width:120px'>"
             "<div style='font-weight:800;color:" + em["text"] + ";font-size:13px;margin-bottom:3px'>" + nombre + "</div>"
-            "<div style='font-size:11px;color:" + em["text"] + ";font-weight:600;margin-bottom:4px'>" +
-            em["emoji"] + " " + em["label"] + "</div>"
-            + ("<div style='font-size:14px;line-height:1'>" + stars + "<span style='font-size:11px;color:" + em["text"] + ";font-weight:700'>" + val_str + "</span></div>" if stars else "") +
-            comentario_html +
-            "</div>"
+            "<div style='font-size:11px;color:" + em["text"] + ";font-weight:600;margin-bottom:4px'>" + em["emoji"] + " " + em["label"] + "</div>"
+            + ("<div style='font-size:14px;line-height:1'>" + stars + "<span style='font-size:11px;color:" + em["text"] + ";font-weight:700'>" + val_str + "</span></div>" if stars else "")
+            + comentario_html + "</div>"
         )
 
-    def render_libro_card(libro, idx, nombres_jugadoras):
-        """Renderiza la tarjeta principal del libro con tarjetas de miembros."""
-        autora = libro.get("autora", "")
-        prom = promedio_vals(libro)
+    def dias_tardados(libro):
+        fi = libro.get("fecha_inicio", ""); ff = libro.get("fecha_fin", "")
+        if fi and ff:
+            try:
+                d1 = datetime.strptime(fi, "%Y-%m-%d"); d2 = datetime.strptime(ff, "%Y-%m-%d")
+                dias = (d2 - d1).days
+                return str(dias) + " días"
+            except: pass
+        return ""
 
-        # Header del libro
+    def render_libro_card(libro, idx, nombres_jug):
+        autora = libro.get("autora", ""); prom = promedio_vals(libro)
+        portada = libro.get("portada_url", ""); genero = libro.get("genero", "")
+        dias = dias_tardados(libro)
+        fi = libro.get("fecha_inicio", ""); ff = libro.get("fecha_fin", "")
+
         html = (
             "<div style='background:white;border:2px solid #c5ebd8;border-radius:20px;"
             "padding:16px;margin-bottom:8px;box-shadow:0 4px 14px rgba(0,0,0,0.06)'>"
-            "<div style='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px'>"
-            "<div>"
-            "<div style='font-weight:800;color:#2d7a4f;font-size:17px'>📚 " + libro["titulo"] + "</div>"
+            "<div style='display:flex;gap:12px;margin-bottom:10px'>"
         )
-        if autora:
-            html += "<div style='font-size:13px;color:#888;font-weight:600;margin-top:2px'>✍️ " + autora + "</div>"
+        if portada:
+            html += "<img src='" + portada + "' style='width:60px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0' onerror=\"this.style.display='none'\">"
+        html += "<div style='flex:1'>"
+        html += "<div style='display:flex;align-items:flex-start;justify-content:space-between'>"
+        html += "<div><div style='font-weight:800;color:#2d7a4f;font-size:17px'>📚 " + libro["titulo"] + "</div>"
+        if autora: html += "<div style='font-size:13px;color:#888;font-weight:600;margin-top:2px'>✍️ " + autora + "</div>"
+        if genero and genero != "Sin género": html += "<div style='display:inline-block;background:#e8f8f0;color:#2d7a4f;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px'>" + genero + "</div>"
         html += "</div>"
-
-        # Promedio general
         if prom > 0:
-            html += (
-                "<div style='text-align:right'>"
-                "<div style='font-size:16px;line-height:1'>" + estrellas(prom) + "</div>"
-                "<div style='font-size:12px;color:#2d7a4f;font-weight:700'>" + str(prom) + "/5 promedio</div>"
-                "</div>"
-            )
+            html += "<div style='text-align:right;flex-shrink:0'><div style='font-size:15px'>" + estrellas(prom) + "</div><div style='font-size:12px;color:#2d7a4f;font-weight:700'>" + str(prom) + "/5</div></div>"
         html += "</div>"
-
-        # Tarjetas por miembro
+        if fi or ff or dias:
+            fecha_html = "<div style='font-size:11px;color:#aaa;margin-top:6px'>"
+            if fi: fecha_html += "Inicio: " + fi
+            if ff: fecha_html += "  ·  Fin: " + ff
+            if dias: fecha_html += "  ·  ⏱️ " + dias
+            fecha_html += "</div>"
+            html += fecha_html
+        html += "</div></div>"
         html += "<div style='display:flex;gap:8px;flex-wrap:wrap'>"
-        for nombre in nombres_jugadoras:
+        for nombre in nombres_jug:
             estado_m = libro.get("estados_miembro", {}).get(nombre, "sin_estado")
             val_m    = libro.get("valoraciones", {}).get(nombre, 0)
             com_m    = libro.get("comentarios", {}).get(nombre, "")
             html += render_tarjeta_miembro(nombre, estado_m, val_m, com_m)
         html += "</div></div>"
-
         st.markdown(html, unsafe_allow_html=True)
 
-    # ── Contadores globales ────────────────────────────────────
     libros = data.get("libros", [])
-    nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
-    n_total     = len(libros)
-    n_con_leido = sum(1 for l in libros if any(
-        l.get("estados_miembro", {}).get(n) == "leido" for n in nombres_jugadoras
-    ))
+    # Libro actual del club
+    st.markdown("**📖 Libro actual del club:**")
+    c1, c2 = st.columns([3,1])
+    with c1:
+        libro_actual_input = st.text_input("", value=data.get("libro_actual",""), placeholder="Ej: De sangre y cenizas", key="libro_actual_inp", label_visibility="collapsed")
+    with c2:
+        if st.button("Guardar", key="save_libro_actual"):
+            data["libro_actual"] = libro_actual_input.strip()
+            save_data(data); st.rerun()
 
+    # Meta del año
+    st.divider()
+    libros_leidos_total = sum(
+        1 for l in libros
+        if all(l.get("estados_miembro", {}).get(n) == "leido" for n in nombres_jugadoras)
+    )
+    meta = data.get("meta_anio", 12)
+    progreso = min(libros_leidos_total / meta, 1.0) if meta > 0 else 0
+    pct = int(progreso * 100)
     st.markdown(
-        "<div style='display:flex;gap:10px;margin-bottom:4px'>"
-        "<div style='background:#d4f0e4;border-radius:14px;padding:10px 16px;flex:1;text-align:center'>"
-        "<div style='font-size:22px;font-weight:800;color:#2d7a4f'>" + str(n_total) + "</div>"
-        "<div style='font-size:12px;color:#2d7a4f;font-weight:700'>Total libros 📚</div></div>"
-        "<div style='background:#d4edf7;border-radius:14px;padding:10px 16px;flex:1;text-align:center'>"
-        "<div style='font-size:22px;font-weight:800;color:#1a6a8a'>" + str(n_con_leido) + "</div>"
-        "<div style='font-size:12px;color:#1a6a8a;font-weight:700'>Con al menos 1 leído ✅</div></div>"
-        "</div>",
+        "<div style='background:white;border:2px solid #c5ebd8;border-radius:16px;padding:14px 16px'>"
+        "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>"
+        "<span style='font-weight:800;color:#2d7a4f;font-size:14px'>🎯 Meta " + str(date.today().year) + "</span>"
+        "<span style='font-weight:700;color:#1a6a8a;font-size:14px'>" + str(libros_leidos_total) + " / " + str(meta) + " libros</span></div>"
+        "<div style='background:#e8f8f0;border-radius:20px;height:16px;overflow:hidden'>"
+        "<div style='background:linear-gradient(90deg,#3dba75,#5bc0e8);height:100%;width:" + str(pct) + "%;border-radius:20px;transition:width 0.3s'></div></div>"
+        "<div style='font-size:12px;color:#6abf8a;font-weight:600;margin-top:4px;text-align:right'>" + str(pct) + "%</div></div>",
         unsafe_allow_html=True
     )
+    c1, c2 = st.columns([3,1])
+    with c1:
+        nueva_meta = st.number_input("Cambiar meta anual", min_value=1, max_value=100, value=meta, step=1, key="meta_inp")
+    with c2:
+        st.write("")
+        if st.button("Guardar meta", key="save_meta"):
+            data["meta_anio"] = nueva_meta; save_data(data); st.rerun()
 
     st.divider()
 
-    # ── Agregar libro ──────────────────────────────────────────
+    # Filtro por género
+    generos_usados = list(set(l.get("genero","Sin género") for l in libros)) if libros else []
+    generos_usados = [g for g in GENEROS if g in generos_usados]
+    filtro_genero = "Todos"
+    if generos_usados:
+        filtro_genero = st.selectbox("Filtrar por género", ["Todos"] + generos_usados, key="filtro_genero")
+
+    def filtrar(lista):
+        if filtro_genero == "Todos": return lista
+        return [(i, l) for i, l in lista if l.get("genero","Sin género") == filtro_genero]
+
     with st.expander("➕ Agregar libro"):
         c1, c2 = st.columns(2)
         with c1:
             nuevo_titulo = st.text_input("Título *", placeholder="Ej: El principito", key="lib_titulo")
-        with c2:
             nueva_autora = st.text_input("Autora/Autor", placeholder="Ej: Saint-Exupéry", key="lib_autora")
+        with c2:
+            nuevo_genero = st.selectbox("Género", GENEROS, key="lib_genero")
+            nueva_portada = st.text_input("URL portada (opcional)", placeholder="https://...", key="lib_portada")
+        c1, c2 = st.columns(2)
+        with c1: nueva_fi = st.date_input("Fecha de inicio (opcional)", value=None, key="lib_fi")
+        with c2: nueva_ff = st.date_input("Fecha de fin (opcional)", value=None, key="lib_ff")
         if st.button("📚 Agregar libro", type="primary", use_container_width=True):
             if nuevo_titulo.strip():
                 data["libros"].append({
-                    "titulo": nuevo_titulo.strip(),
-                    "autora": nueva_autora.strip(),
-                    "valoraciones": {},
-                    "estados_miembro": {},
-                    "comentarios": {},
+                    "titulo": nuevo_titulo.strip(), "autora": nueva_autora.strip(),
+                    "genero": nuevo_genero, "portada_url": nueva_portada.strip(),
+                    "valoraciones": {}, "estados_miembro": {}, "comentarios": {},
+                    "fecha_inicio": str(nueva_fi) if nueva_fi else "",
+                    "fecha_fin": str(nueva_ff) if nueva_ff else "",
                     "fecha_agregado": datetime.now().strftime("%d/%m/%Y")
                 })
-                save_data(data)
-                st.success('📚 "' + nuevo_titulo.strip() + '" agregado!')
-                st.rerun()
-            else:
-                st.warning("El título no puede estar vacío 🐸")
+                save_data(data); st.success('📚 "' + nuevo_titulo.strip() + '" agregado!'); st.rerun()
+            else: st.warning("El título no puede estar vacío 🐸")
 
     st.divider()
 
     if not libros:
-        st.markdown(
-            "<div style='text-align:center;padding:2rem;color:#6abf8a;font-weight:600'>"
-            "<div style='font-size:40px'>📚</div>"
-            "<p>¡Aún no hay libros! Agrega el primero arriba 🐸</p></div>",
-            unsafe_allow_html=True
-        )
+        st.markdown("<div style='text-align:center;padding:2rem;color:#6abf8a;font-weight:600'><div style='font-size:40px'>📚</div><p>¡Aún no hay libros!</p></div>", unsafe_allow_html=True)
     else:
-        # ── Sub-pestañas por estado ────────────────────────────
         def libros_para_subtab(estado_filtro):
-            """Devuelve libros donde AL MENOS UNA miembro tiene ese estado, o todos si es pendiente."""
             if estado_filtro == "pendiente":
-                # pendiente = alguna miembro no ha leído aún (no tiene estado o es leyendo/pendiente)
                 resultado = []
                 for i, l in enumerate(libros):
-                    estados_m = l.get("estados_miembro", {})
-                    tiene_pendiente = any(
-                        estados_m.get(n, "pendiente") in ("pendiente", "sin_estado", "leyendo")
-                        for n in nombres_jugadoras
-                    )
-                    if tiene_pendiente:
+                    em = l.get("estados_miembro", {})
+                    if any(em.get(n, "pendiente") in ("pendiente","sin_estado","leyendo") for n in nombres_jugadoras):
                         resultado.append((i, l))
                 return resultado
-            else:
-                return [
-                    (i, l) for i, l in enumerate(libros)
-                    if any(l.get("estados_miembro", {}).get(n) == estado_filtro for n in nombres_jugadoras)
-                ]
+            return [(i,l) for i,l in enumerate(libros) if any(l.get("estados_miembro",{}).get(n)==estado_filtro for n in nombres_jugadoras)]
 
-        sub_leyendo  = libros_para_subtab("leyendo")
-        sub_leido    = libros_para_subtab("leido")
-        sub_pendiente= libros_para_subtab("pendiente")
+        sub_leyendo   = filtrar(libros_para_subtab("leyendo"))
+        sub_leido     = filtrar(libros_para_subtab("leido"))
+        sub_pendiente = filtrar(libros_para_subtab("pendiente"))
 
         stab1, stab2, stab3 = st.tabs([
             "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
@@ -425,102 +475,231 @@ with tab_libros:
 
         def render_lista_libros(lista_libros, subtab_key):
             if not lista_libros:
-                st.markdown(
-                    "<div style='text-align:center;padding:1.5rem;color:#a8d8bf;font-weight:600'>"
-                    "No hay libros aquí todavía 🐸</div>",
-                    unsafe_allow_html=True
-                )
+                st.markdown("<div style='text-align:center;padding:1.5rem;color:#a8d8bf;font-weight:600'>No hay libros aquí todavía 🐸</div>", unsafe_allow_html=True)
                 return
             for idx, libro in lista_libros:
                 render_libro_card(libro, idx, nombres_jugadoras)
-
                 with st.expander("✏️ Editar · " + libro["titulo"]):
-                    # Datos básicos
                     c1, c2 = st.columns(2)
                     with c1:
-                        ed_titulo = st.text_input("Título", value=libro["titulo"], key=subtab_key + "_titulo_" + str(idx))
-                        ed_autora = st.text_input("Autora/Autor", value=libro.get("autora", ""), key=subtab_key + "_autora_" + str(idx))
+                        ed_titulo = st.text_input("Título", value=libro["titulo"], key=subtab_key+"_titulo_"+str(idx))
+                        ed_autora = st.text_input("Autora/Autor", value=libro.get("autora",""), key=subtab_key+"_autora_"+str(idx))
+                        ed_portada = st.text_input("URL portada", value=libro.get("portada_url",""), key=subtab_key+"_portada_"+str(idx))
+                    with c2:
+                        ed_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(libro.get("genero","Sin género")), key=subtab_key+"_genero_"+str(idx))
+                        fi_val = None
+                        try:
+                            if libro.get("fecha_inicio"): fi_val = datetime.strptime(libro["fecha_inicio"],"%Y-%m-%d").date()
+                        except: pass
+                        ff_val = None
+                        try:
+                            if libro.get("fecha_fin"): ff_val = datetime.strptime(libro["fecha_fin"],"%Y-%m-%d").date()
+                        except: pass
+                        ed_fi = st.date_input("Fecha inicio", value=fi_val, key=subtab_key+"_fi_"+str(idx))
+                        ed_ff = st.date_input("Fecha fin", value=ff_val, key=subtab_key+"_ff_"+str(idx))
 
                     st.markdown("---")
                     st.markdown("**👤 ¿Quién quiere actualizar su estado?**")
-
-                    # Selector de miembro — la key incluye idx para aislarlo por libro
                     quien_key = subtab_key + "_quien_" + str(idx)
-                    nombre_sel = st.selectbox(
-                        "Miembro",
-                        options=nombres_jugadoras,
-                        key=quien_key
-                    )
+                    nombre_sel = st.selectbox("Miembro", options=nombres_jugadoras, key=quien_key)
 
-                    # Las keys de los campos incluyen el nombre: al cambiar miembro, son campos distintos
-                    estm_key = subtab_key + "_estm_" + str(idx) + "_" + nombre_sel
-                    val_key  = subtab_key + "_val_"  + str(idx) + "_" + nombre_sel
-                    com_key  = subtab_key + "_com_"  + str(idx) + "_" + nombre_sel
+                    estm_key = subtab_key+"_estm_"+str(idx)+"_"+nombre_sel
+                    val_key  = subtab_key+"_val_"+str(idx)+"_"+nombre_sel
+                    com_key  = subtab_key+"_com_"+str(idx)+"_"+nombre_sel
 
-                    # Cargar valores guardados de esta miembro como default (solo si la key no existe aún)
                     if estm_key not in st.session_state:
-                        st.session_state[estm_key] = libro.get("estados_miembro", {}).get(nombre_sel, "pendiente")
+                        st.session_state[estm_key] = libro.get("estados_miembro",{}).get(nombre_sel,"pendiente")
                     if val_key not in st.session_state:
-                        st.session_state[val_key] = libro.get("valoraciones", {}).get(nombre_sel, 0) or 0
+                        st.session_state[val_key] = libro.get("valoraciones",{}).get(nombre_sel,0) or 0
                     if com_key not in st.session_state:
-                        st.session_state[com_key] = libro.get("comentarios", {}).get(nombre_sel, "")
+                        st.session_state[com_key] = libro.get("comentarios",{}).get(nombre_sel,"")
 
                     c1, c2 = st.columns(2)
                     with c1:
-                        ed_estado_m = st.selectbox(
-                            "Estado",
-                            options=["pendiente", "leyendo", "leido"],
-                            format_func=lambda x: {"pendiente": "🕐 Pendiente", "leyendo": "📖 Leyendo", "leido": "✅ Leído"}[x],
-                            key=estm_key
-                        )
+                        ed_estado_m = st.selectbox("Estado", options=["pendiente","leyendo","leido"],
+                            format_func=lambda x: {"pendiente":"🕐 Pendiente","leyendo":"📖 Leyendo","leido":"✅ Leído"}[x], key=estm_key)
                     with c2:
-                        ed_val_m = st.slider(
-                            "Valoración ⭐",
-                            min_value=0, max_value=5,
-                            key=val_key
-                        )
+                        ed_val_m = st.slider("Valoración ⭐", min_value=0, max_value=5, key=val_key)
 
-                    ed_com_m = st.text_area(
-                        "Comentario 💬",
-                        placeholder="¿Qué piensa " + nombre_sel + " del libro?",
-                        key=com_key,
-                        height=80
-                    )
+                    ed_com_m = st.text_area("Comentario 💬", placeholder="¿Qué piensa " + nombre_sel + " del libro?", key=com_key, height=80)
 
-                    cc1, cc2 = st.columns([3, 1])
+                    cc1, cc2 = st.columns([3,1])
                     with cc1:
-                        if st.button("💾 Guardar para " + nombre_sel, key=subtab_key + "_save_" + str(idx), type="primary"):
-                            if "estados_miembro" not in data["libros"][idx]:
-                                data["libros"][idx]["estados_miembro"] = {}
-                            if "valoraciones" not in data["libros"][idx]:
-                                data["libros"][idx]["valoraciones"] = {}
-                            if "comentarios" not in data["libros"][idx]:
-                                data["libros"][idx]["comentarios"] = {}
+                        if st.button("💾 Guardar para " + nombre_sel, key=subtab_key+"_save_"+str(idx), type="primary"):
+                            for field in ["estados_miembro","valoraciones","comentarios"]:
+                                if field not in data["libros"][idx]: data["libros"][idx][field] = {}
                             data["libros"][idx]["estados_miembro"][nombre_sel] = ed_estado_m
                             data["libros"][idx]["valoraciones"][nombre_sel] = ed_val_m
                             data["libros"][idx]["comentarios"][nombre_sel] = ed_com_m.strip()
                             data["libros"][idx]["titulo"] = ed_titulo.strip() or libro["titulo"]
                             data["libros"][idx]["autora"] = ed_autora.strip()
+                            data["libros"][idx]["genero"] = ed_genero
+                            data["libros"][idx]["portada_url"] = ed_portada.strip()
+                            data["libros"][idx]["fecha_inicio"] = str(ed_fi) if ed_fi else ""
+                            data["libros"][idx]["fecha_fin"] = str(ed_ff) if ed_ff else ""
                             save_data(data)
-                            # Borrar keys de esta miembro para que recarguen desde data la próxima vez
                             for k in [estm_key, val_key, com_key, quien_key]:
-                                if k in st.session_state:
-                                    del st.session_state[k]
-                            st.success("¡Guardado para " + nombre_sel + "! 🐸")
-                            st.rerun()
+                                if k in st.session_state: del st.session_state[k]
+                            st.success("¡Guardado para " + nombre_sel + "! 🐸"); st.rerun()
                     with cc2:
                         st.write("")
-                        if st.button("🗑️ Eliminar", key=subtab_key + "_del_" + str(idx)):
-                            data["libros"].pop(idx)
-                            save_data(data)
-                            st.rerun()
+                        if st.button("🗑️ Eliminar", key=subtab_key+"_del_"+str(idx)):
+                            data["libros"].pop(idx); save_data(data); st.rerun()
 
-        with stab1:
-            render_lista_libros(sub_leyendo, "ley")
-        with stab2:
-            render_lista_libros(sub_leido, "lei")
-        with stab3:
-            render_lista_libros(sub_pendiente, "pen")
+        with stab1: render_lista_libros(sub_leyendo, "ley")
+        with stab2: render_lista_libros(sub_leido, "lei")
+        with stab3: render_lista_libros(sub_pendiente, "pen")
+
+
+# ╔══════════════════════╗
+# ║    TAB: AGENDA       ║
+# ╚══════════════════════╝
+with tab_agenda:
+    st.markdown("### 📅 Próximas reuniones")
+
+    agenda = data.get("agenda", [])
+    # Mostrar reuniones futuras primero
+    hoy = date.today().isoformat()
+    futuras = [(i,r) for i,r in enumerate(agenda) if r.get("fecha","") >= hoy]
+    pasadas = [(i,r) for i,r in enumerate(agenda) if r.get("fecha","") < hoy]
+
+    if futuras:
+        for i, reunion in futuras:
+            dias_para = (datetime.strptime(reunion["fecha"],"%Y-%m-%d").date() - date.today()).days
+            if dias_para == 0: cuando = "¡Hoy! 🎉"
+            elif dias_para == 1: cuando = "¡Mañana! ✨"
+            else: cuando = "En " + str(dias_para) + " días"
+            st.markdown(
+                "<div style='background:#d4edf7;border:2px solid #5bc0e8;border-radius:16px;padding:14px 16px;margin-bottom:8px'>"
+                "<div style='display:flex;justify-content:space-between;align-items:flex-start'>"
+                "<div><div style='font-weight:800;color:#1a6a8a;font-size:15px'>📅 " + reunion.get("titulo","Reunión") + "</div>"
+                "<div style='font-size:13px;color:#1a6a8a;margin-top:2px'>" + reunion["fecha"] + "  ·  " + reunion.get("hora","") + "</div>"
+                + ("<div style='font-size:13px;color:#555;margin-top:4px'>📖 " + reunion.get("capitulos","") + "</div>" if reunion.get("capitulos") else "")
+                + ("<div style='font-size:13px;color:#555;margin-top:2px'>📝 " + reunion.get("notas","") + "</div>" if reunion.get("notas") else "")
+                + "</div>"
+                "<div style='text-align:right;font-size:12px;color:#1a6a8a;font-weight:700'>" + cuando + "</div></div></div>",
+                unsafe_allow_html=True
+            )
+            if st.button("🗑️ Eliminar reunión", key="del_reunion_" + str(i)):
+                data["agenda"].pop(i); save_data(data); st.rerun()
+    else:
+        st.markdown("<div style='text-align:center;padding:1rem;color:#a8d8bf;font-weight:600'>No hay reuniones próximas agendadas 🐸</div>", unsafe_allow_html=True)
+
+    with st.expander("➕ Agendar reunión"):
+        c1, c2 = st.columns(2)
+        with c1:
+            ag_titulo = st.text_input("Título", placeholder="Ej: Sesión #5", key="ag_titulo")
+            ag_fecha  = st.date_input("Fecha", key="ag_fecha")
+        with c2:
+            ag_hora   = st.text_input("Hora", placeholder="Ej: 19:00", key="ag_hora")
+            ag_caps   = st.text_input("Capítulos a cubrir", placeholder="Ej: Cap 10-15", key="ag_caps")
+        ag_notas = st.text_area("Notas", placeholder="Lugar, link, etc.", key="ag_notas", height=70)
+        if st.button("📅 Agregar reunión", type="primary", use_container_width=True):
+            data["agenda"].append({
+                "titulo": ag_titulo.strip() or "Reunión",
+                "fecha": str(ag_fecha), "hora": ag_hora.strip(),
+                "capitulos": ag_caps.strip(), "notas": ag_notas.strip()
+            })
+            data["agenda"].sort(key=lambda x: x.get("fecha",""))
+            save_data(data); st.success("¡Reunión agendada! 📅"); st.rerun()
+
+    if pasadas:
+        with st.expander("🕐 Reuniones pasadas (" + str(len(pasadas)) + ")"):
+            for i, reunion in pasadas:
+                st.markdown(
+                    "<div style='background:#f5f5f5;border:1px solid #ddd;border-radius:12px;padding:10px 14px;margin-bottom:6px;opacity:0.7'>"
+                    "<div style='font-weight:700;color:#888;font-size:14px'>📅 " + reunion.get("titulo","Reunión") + "  ·  " + reunion["fecha"] + "</div>"
+                    + ("<div style='font-size:12px;color:#aaa'>📖 " + reunion.get("capitulos","") + "</div>" if reunion.get("capitulos") else "")
+                    + "</div>", unsafe_allow_html=True
+                )
+
+
+# ╔══════════════════════════╗
+# ║  TAB: ESTADÍSTICAS       ║
+# ╚══════════════════════════╝
+with tab_stats:
+    st.markdown("### 📊 Estadísticas del club")
+
+    libros = data.get("libros", [])
+    total_libros = len(libros)
+    leidos_todos = [l for l in libros if all(l.get("estados_miembro",{}).get(n)=="leido" for n in nombres_jugadoras)]
+    n_leidos_todos = len(leidos_todos)
+
+    # Contadores
+    c1, c2, c3 = st.columns(3)
+    for col, label, n, color, tc in [
+        (c1, "Total libros 📚", total_libros, "#d4edf7", "#1a6a8a"),
+        (c2, "Leídos por todas ✅", n_leidos_todos, "#d4f0e4", "#2d7a4f"),
+        (c3, "Reuniones 📅", len(data.get("agenda",[])), "#fce8f3", "#a0417a"),
+    ]:
+        with col:
+            st.markdown(
+                "<div style='text-align:center;background:" + color + ";border-radius:16px;padding:12px 8px'>"
+                "<div style='font-size:26px;font-weight:800;color:" + tc + "'>" + str(n) + "</div>"
+                "<div style='font-size:11px;color:" + tc + ";font-weight:700'>" + label + "</div></div>",
+                unsafe_allow_html=True
+            )
+
+    st.divider()
+
+    # Géneros más leídos
+    if libros:
+        st.markdown("**📖 Libros por género**")
+        genero_count = {}
+        for l in leidos_todos:
+            g = l.get("genero","Sin género")
+            genero_count[g] = genero_count.get(g, 0) + 1
+        if genero_count:
+            max_g = max(genero_count.values())
+            for g, cnt in sorted(genero_count.items(), key=lambda x: -x[1]):
+                pct_g = int(cnt / max_g * 100)
+                st.markdown(
+                    "<div style='margin-bottom:6px'>"
+                    "<div style='display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#2d7a4f;margin-bottom:2px'>"
+                    "<span>" + g + "</span><span>" + str(cnt) + "</span></div>"
+                    "<div style='background:#e8f8f0;border-radius:20px;height:10px'>"
+                    "<div style='background:#3dba75;height:100%;width:" + str(pct_g) + "%;border-radius:20px'></div></div></div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.caption("Aún no hay libros leídos por todas 🐸")
+
+        st.divider()
+
+        # Promedio de valoración por libro (leídos)
+        st.markdown("**⭐ Valoraciones promedio**")
+        libros_con_val = [(l["titulo"], promedio_vals(l)) for l in leidos_todos if promedio_vals(l) > 0]
+        libros_con_val.sort(key=lambda x: -x[1])
+        if libros_con_val:
+            for titulo, prom in libros_con_val:
+                st.markdown(
+                    "<div style='display:flex;justify-content:space-between;align-items:center;"
+                    "background:white;border:1px solid #d4f0e4;border-radius:12px;padding:8px 14px;margin-bottom:6px'>"
+                    "<span style='font-weight:700;color:#2d7a4f;font-size:13px'>" + titulo + "</span>"
+                    "<span style='font-size:15px'>" + estrellas(prom) + " <b style='color:#2d7a4f;font-size:12px'>" + str(prom) + "</b></span></div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.caption("Aún no hay valoraciones registradas 🐸")
+
+        st.divider()
+
+        # Miembro más activa
+        st.markdown("**👤 Actividad por miembro**")
+        for nombre in nombres_jugadoras:
+            leidos_n = sum(1 for l in libros if l.get("estados_miembro",{}).get(nombre)=="leido")
+            leyendo_n = sum(1 for l in libros if l.get("estados_miembro",{}).get(nombre)=="leyendo")
+            pts_n = next((j["puntos"] for j in data["jugadoras"] if j["nombre"]==nombre), 0)
+            st.markdown(
+                "<div style='background:white;border:1.5px solid #c5ebd8;border-radius:14px;padding:10px 14px;margin-bottom:8px'>"
+                "<div style='font-weight:800;color:#2d7a4f;font-size:14px;margin-bottom:6px'>" + nombre + "</div>"
+                "<div style='display:flex;gap:16px;font-size:12px;color:#555'>"
+                "<span>✅ <b>" + str(leidos_n) + "</b> leídos</span>"
+                "<span>📖 <b>" + str(leyendo_n) + "</b> leyendo</span>"
+                "<span>🏆 <b>" + ("+" if pts_n > 0 else "") + str(pts_n) + "</b> pts</span>"
+                "</div></div>",
+                unsafe_allow_html=True
+            )
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
