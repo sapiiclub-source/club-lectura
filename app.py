@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime, date
 
-st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered") 
+st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
 DATA_FILE = "data.json"
 
 st.markdown("""
@@ -45,6 +45,7 @@ def load_data():
         if "agenda" not in d: d["agenda"] = []
         if "meta_anio" not in d: d["meta_anio"] = 12
         if "libro_actual" not in d: d["libro_actual"] = ""
+        if "votacion" not in d: d["votacion"] = {"propuestas": [], "activa": False}
         if "historial_puntos" not in d: d["historial_puntos"] = {}
         for libro in d["libros"]:
             if "valoraciones" not in libro: libro["valoraciones"] = {}
@@ -64,7 +65,7 @@ def load_data():
             {"nombre": "Llegó tarde", "puntos": -1}, {"nombre": "Spoileó sin avisar", "puntos": -2},
         ],
         "historial": [], "historial_puntos": {}, "libros": [],
-        "agenda": [], "meta_anio": 12, "libro_actual": ""
+        "agenda": [], "meta_anio": 12, "libro_actual": "", "votacion": {"propuestas": [], "activa": False}
     }
 
 def save_data(data):
@@ -84,7 +85,7 @@ def promedio_vals(libro):
 data = load_data()
 nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
-TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"]
+TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "📅 Agenda", "📊 Estadísticas"]
 
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
@@ -121,7 +122,7 @@ if data.get("libro_actual"):
 
 st.divider()
 
-tab_puntos, tab_biblioteca, tab_lecturas, tab_agenda, tab_stats = st.tabs(TABS)
+tab_puntos, tab_biblioteca, tab_lecturas, tab_votacion, tab_agenda, tab_stats = st.tabs(TABS)
 
 
 # ╔══════════════════════╗
@@ -660,6 +661,157 @@ with tab_lecturas:
 
 
 # ╔══════════════════════╗
+# ║    TAB: VOTACIÓN     ║
+# ╚══════════════════════╝
+with tab_votacion:
+    st.markdown("### 🗳️ Votación — próximo libro")
+
+    votacion = data.get("votacion", {"propuestas": [], "activa": False})
+    propuestas = votacion.get("propuestas", [])
+    activa = votacion.get("activa", False)
+
+    # Estado de la votación
+    if activa:
+        st.markdown(
+            "<div style='background:#d4edf7;border:2px solid #5bc0e8;border-radius:14px;"
+            "padding:10px 16px;margin-bottom:12px;font-size:13px;color:#1a6a8a;font-weight:700'>"
+            "🗳️ Votación en curso — ¡todas pueden votar!</div>",
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            "<div style='background:#f5f5f5;border:2px solid #ddd;border-radius:14px;"
+            "padding:10px 16px;margin-bottom:12px;font-size:13px;color:#999;font-weight:700'>"
+            "⏸️ Votación no iniciada — agrega propuestas y actívala cuando estén listas</div>",
+            unsafe_allow_html=True
+        )
+
+    # Proponer libro
+    with st.expander("➕ Proponer un libro"):
+        c1, c2 = st.columns(2)
+        with c1:
+            prop_titulo  = st.text_input("Título *", key="prop_titulo")
+            prop_autora  = st.text_input("Autora/Autor", key="prop_autora")
+        with c2:
+            prop_quien   = st.selectbox("Propuesto por", nombres_jugadoras, key="prop_quien")
+            prop_genero  = st.selectbox("Género", GENEROS, key="prop_genero")
+        if st.button("📚 Agregar propuesta", type="primary", use_container_width=True, key="btn_prop"):
+            if prop_titulo.strip():
+                # Evitar duplicados
+                titulos_prop = [p["titulo"].lower() for p in propuestas]
+                if prop_titulo.strip().lower() in titulos_prop:
+                    st.warning("Ese libro ya está propuesto 🐸")
+                else:
+                    propuestas.append({
+                        "titulo":  prop_titulo.strip(),
+                        "autora":  prop_autora.strip(),
+                        "genero":  prop_genero,
+                        "quien":   prop_quien,
+                        "votos":   {}
+                    })
+                    data["votacion"]["propuestas"] = propuestas
+                    save_data(data)
+                    for k in ["prop_titulo","prop_autora"]:
+                        if k in st.session_state: del st.session_state[k]
+                    st.success("¡Propuesta agregada! 🐸"); st.rerun()
+            else:
+                st.warning("El título no puede estar vacío 🐸")
+
+    # Controles de votación
+    cc1, cc2, cc3 = st.columns(3)
+    with cc1:
+        lbl = "⏸️ Pausar votación" if activa else "▶️ Iniciar votación"
+        if st.button(lbl, key="toggle_votacion", use_container_width=True):
+            data["votacion"]["activa"] = not activa
+            save_data(data); st.rerun()
+    with cc2:
+        if st.button("🔄 Reiniciar votos", key="reset_votos", use_container_width=True):
+            for p in propuestas:
+                p["votos"] = {}
+            data["votacion"]["propuestas"] = propuestas
+            save_data(data); st.rerun()
+    with cc3:
+        if st.button("🗑️ Borrar propuestas", key="clear_props", use_container_width=True):
+            data["votacion"] = {"propuestas": [], "activa": False}
+            save_data(data); st.rerun()
+
+    st.divider()
+
+    if not propuestas:
+        st.markdown(
+            "<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'>"
+            "<div style='font-size:36px'>🗳️</div>"
+            "<p>Aún no hay propuestas. ¡Agrega la primera! 🐸</p></div>",
+            unsafe_allow_html=True
+        )
+    else:
+        # Calcular ganadora provisional
+        max_votos = max((len(p["votos"]) for p in propuestas), default=0)
+
+        # Ordenar por votos desc
+        propuestas_ord = sorted(enumerate(propuestas), key=lambda x: -len(x[1]["votos"]))
+
+        for orig_idx, prop in propuestas_ord:
+            n_votos = len(prop["votos"])
+            es_ganadora = n_votos == max_votos and max_votos > 0
+            bg     = "#d4f0e4" if es_ganadora else "white"
+            border = "#3dba75" if es_ganadora else "#c5ebd8"
+            bw     = "2.5px"   if es_ganadora else "1.5px"
+            corona = "👑 " if es_ganadora else ""
+
+            # Barra de votos
+            total_miembros = len(nombres_jugadoras)
+            pct_v = int(n_votos / total_miembros * 100) if total_miembros > 0 else 0
+            votantes_str = ", ".join(prop["votos"].keys()) if prop["votos"] else "Nadie aún"
+
+            st.markdown(
+                "<div style='background:" + bg + ";border:" + bw + " solid " + border + ";"
+                "border-radius:18px;padding:14px 16px;margin-bottom:10px'>"
+                "<div style='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px'>"
+                "<div><div style='font-weight:800;color:#2d7a4f;font-size:16px'>" + corona + prop["titulo"] + "</div>"
+                + ("<div style='font-size:12px;color:#888;margin-top:1px'>✍️ " + prop["autora"] + "</div>" if prop.get("autora") else "")
+                + "<div style='font-size:11px;color:#aaa;margin-top:2px'>Propuesto por " + prop["quien"] + "</div></div>"
+                "<div style='text-align:right'>"
+                "<div style='font-size:22px;font-weight:800;color:#2d7a4f'>" + str(n_votos) + "</div>"
+                "<div style='font-size:11px;color:#888'>votos</div></div></div>"
+                "<div style='background:#e8f8f0;border-radius:20px;height:8px;margin-bottom:6px'>"
+                "<div style='background:#3dba75;height:100%;width:" + str(pct_v) + "%;border-radius:20px'></div></div>"
+                "<div style='font-size:11px;color:#888'>🗳️ " + votantes_str + "</div>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+
+            # Botones de votar / quitar voto / eliminar
+            bc1, bc2, bc3 = st.columns([2, 2, 1])
+            with bc1:
+                if activa:
+                    votante = st.selectbox("¿Quién vota?", nombres_jugadoras, key="vot_quien_" + str(orig_idx))
+                    ya_voto = votante in prop["votos"]
+                    lbl_voto = "✅ Quitar voto" if ya_voto else "🗳️ Votar"
+                    tipo_voto = "secondary" if ya_voto else "primary"
+                    if st.button(lbl_voto, key="vot_btn_" + str(orig_idx), type=tipo_voto, use_container_width=True):
+                        if ya_voto:
+                            del data["votacion"]["propuestas"][orig_idx]["votos"][votante]
+                        else:
+                            data["votacion"]["propuestas"][orig_idx]["votos"][votante] = True
+                        save_data(data); st.rerun()
+            with bc3:
+                if st.button("🗑️", key="del_prop_" + str(orig_idx)):
+                    data["votacion"]["propuestas"].pop(orig_idx)
+                    save_data(data); st.rerun()
+
+        # Botón para elegir ganadora como libro actual
+        if max_votos > 0:
+            st.divider()
+            ganadora = max(propuestas, key=lambda x: len(x["votos"]))
+            lbl_gan = "📖 Poner '" + ganadora["titulo"] + "' como libro actual"
+            if st.button(lbl_gan, type="primary", use_container_width=True, key="set_ganadora"):
+                data["libro_actual"] = ganadora["titulo"]
+                save_data(data)
+                st.success("¡'" + ganadora["titulo"] + "' es el próximo libro! 🐸"); st.rerun()
+
+
+# ╔══════════════════════╗
 # ║    TAB: AGENDA       ║
 # ╚══════════════════════╝
 with tab_agenda:
@@ -789,6 +941,46 @@ with tab_stats:
                 )
         else:
             st.caption("Aún no hay valoraciones registradas 🐸")
+
+        st.divider()
+
+        # Tiempo promedio del club en terminar un libro
+        st.markdown("**⏱️ Tiempo promedio por libro**")
+        tiempos = []
+        for l in leidos_todos:
+            fechas_m = l.get("fechas_miembro", {})
+            dias_list = []
+            for n in nombres_jugadoras:
+                fm = fechas_m.get(n, {})
+                fi_s = fm.get("inicio", ""); ff_s = fm.get("fin", "")
+                if fi_s and ff_s:
+                    try:
+                        d1 = datetime.strptime(fi_s, "%Y-%m-%d")
+                        d2 = datetime.strptime(ff_s, "%Y-%m-%d")
+                        if d2 >= d1: dias_list.append((d2 - d1).days)
+                    except: pass
+            if dias_list:
+                tiempos.append((l["titulo"], round(sum(dias_list) / len(dias_list))))
+
+        if tiempos:
+            prom_global = round(sum(t[1] for t in tiempos) / len(tiempos))
+            st.markdown(
+                "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;"
+                "padding:12px 16px;margin-bottom:12px;text-align:center'>"
+                "<div style='font-size:28px;font-weight:800;color:#854F0B'>" + str(prom_global) + " días</div>"
+                "<div style='font-size:12px;color:#854F0B;font-weight:600'>promedio del club por libro</div></div>",
+                unsafe_allow_html=True
+            )
+            for titulo, dias in sorted(tiempos, key=lambda x: x[1]):
+                st.markdown(
+                    "<div style='display:flex;justify-content:space-between;align-items:center;"
+                    "background:white;border:1px solid #fce8d0;border-radius:12px;padding:8px 14px;margin-bottom:6px'>"
+                    "<span style='font-weight:700;color:#2d7a4f;font-size:13px'>" + titulo + "</span>"
+                    "<span style='font-weight:700;color:#854F0B;font-size:13px'>⏱️ " + str(dias) + " días</span></div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.caption("Aún no hay fechas registradas para calcular tiempos 🐸")
 
         st.divider()
 
