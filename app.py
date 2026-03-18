@@ -108,9 +108,9 @@ if data.get("libro_actual"):
         img_html = "<img src='" + portada_actual + "' style='width:64px;height:96px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.15);flex-shrink:0' onerror=\"this.style.display='none\"'>"
     st.markdown(
         "<div style='background:linear-gradient(135deg,#d4f0e4,#d4edf7);border:2px solid #3dba75;"
-        "border-radius:18px;padding:14px 18px;margin:8px 0;display:flex;align-items:center;gap:14px'>"
+        "border-radius:18px;padding:14px 18px;margin:8px 0;display:flex;align-items:center;justify-content:center;gap:14px'>"
         + img_html +
-        "<div>"
+        "<div style='text-align:center'>"
         "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 Leyendo ahora en el club</div>"
         "<div style='font-size:18px;font-weight:800;color:#1a6a8a;line-height:1.2'>" + data["libro_actual"] + "</div>"
         + ("<div style='font-size:13px;color:#2d7a4f;margin-top:2px'>✍️ " + autora_actual + "</div>" if autora_actual else "") +
