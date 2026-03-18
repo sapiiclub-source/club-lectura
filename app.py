@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime, date
 
-st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
+st.set_page_config(page_title="Sapi Club 🐸🐸🐸", page_icon="🐸", layout="centered") 
 DATA_FILE = "data.json"
 
 st.markdown("""
