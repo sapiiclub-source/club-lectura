@@ -451,13 +451,27 @@ with tab_libros:
             libro_edit_sel = st.selectbox("Selecciona un libro", titulos, key="edit_libro_sel")
             edit_idx = titulos.index(libro_edit_sel)
             libro_e = libros[edit_idx]
+
+            # Keys incluyen edit_idx → campos distintos por libro, se limpian al cambiar selección
+            t_key = "gedit_titulo_"  + str(edit_idx)
+            a_key = "gedit_autora_"  + str(edit_idx)
+            p_key = "gedit_portada_" + str(edit_idx)
+            g_key = "gedit_genero_"  + str(edit_idx)
+
+            if t_key not in st.session_state: st.session_state[t_key] = libro_e["titulo"]
+            if a_key not in st.session_state: st.session_state[a_key] = libro_e.get("autora","")
+            if p_key not in st.session_state: st.session_state[p_key] = libro_e.get("portada_url","")
+            if g_key not in st.session_state: st.session_state[g_key] = libro_e.get("genero","Sin género")
+
             c1, c2 = st.columns(2)
             with c1:
-                ed_titulo  = st.text_input("Título", value=libro_e["titulo"], key="gedit_titulo")
-                ed_autora  = st.text_input("Autora/Autor", value=libro_e.get("autora",""), key="gedit_autora")
-                ed_portada = st.text_input("URL portada", value=libro_e.get("portada_url",""), key="gedit_portada")
+                ed_titulo  = st.text_input("Título",        key=t_key)
+                ed_autora  = st.text_input("Autora/Autor",  key=a_key)
+                ed_portada = st.text_input("URL portada",   key=p_key)
             with c2:
-                ed_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(libro_e.get("genero","Sin género")), key="gedit_genero")
+                ed_genero = st.selectbox("Género", GENEROS,
+                    index=GENEROS.index(st.session_state[g_key]) if st.session_state[g_key] in GENEROS else 0,
+                    key=g_key)
             cc1, cc2 = st.columns([3,1])
             with cc1:
                 if st.button("💾 Guardar cambios", key="gedit_save", type="primary"):
@@ -465,7 +479,10 @@ with tab_libros:
                     data["libros"][edit_idx]["autora"]      = ed_autora.strip()
                     data["libros"][edit_idx]["genero"]      = ed_genero
                     data["libros"][edit_idx]["portada_url"] = ed_portada.strip()
-                    save_data(data); st.success("¡Libro actualizado! 🐸"); st.rerun()
+                    save_data(data)
+                    for k in [t_key, a_key, p_key, g_key]:
+                        if k in st.session_state: del st.session_state[k]
+                    st.success("¡Libro actualizado! 🐸"); st.rerun()
             with cc2:
                 st.write("")
                 if st.button("🗑️ Eliminar", key="gedit_del"):
