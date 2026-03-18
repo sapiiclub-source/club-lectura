@@ -138,32 +138,73 @@ with tab_puntos:
     # Medallas
     st.divider()
     st.markdown("### 🏅 Medallas")
-    pts_list = [(j["nombre"], j["puntos"]) for j in data["jugadoras"]]
-    lider_nombre = max(pts_list, key=lambda x: x[1])[0] if pts_list else ""
-    
-    libros_leidos_por = {}
+
+    mes_actual = datetime.now().strftime("%Y-%m")
+
+    # Libros leidos en total por miembro
+    libros_leidos_total = {n: 0 for n in nombres_jugadoras}
+    # Libros leidos este mes por miembro (usando fecha_fin del miembro)
+    libros_leidos_mes = {n: 0 for n in nombres_jugadoras}
+
     for libro in data.get("libros", []):
         for n in nombres_jugadoras:
             if libro.get("estados_miembro", {}).get(n) == "leido":
-                libros_leidos_por[n] = libros_leidos_por.get(n, 0) + 1
-    mas_lectora = max(libros_leidos_por, key=libros_leidos_por.get) if libros_leidos_por else ""
+                libros_leidos_total[n] = libros_leidos_total.get(n, 0) + 1
+                # Fecha fin individual del miembro
+                fecha_fin_m = libro.get("fechas_miembro", {}).get(n, {}).get("fin", "")
+                if fecha_fin_m and fecha_fin_m[:7] == mes_actual:
+                    libros_leidos_mes[n] = libros_leidos_mes.get(n, 0) + 1
+
+    # Lectora del mes: más libros terminados este mes
+    max_mes = max(libros_leidos_mes.values())
+    lectora_mes = max(libros_leidos_mes, key=libros_leidos_mes.get) if max_mes > 0 else ""
+
+    # Más libros leídos en total
+    max_total = max(libros_leidos_total.values())
+    mas_lectora = max(libros_leidos_total, key=libros_leidos_total.get) if max_total > 0 else ""
+
+    # Más envidiosa: menos libros leídos en total (solo si hay diferencia)
+    min_total = min(libros_leidos_total.values())
+    menos_lectora = min(libros_leidos_total, key=libros_leidos_total.get) if min_total < max_total else ""
+
+    mes_nombre = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][datetime.now().month - 1]
 
     medallas_html = "<div style='display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px'>"
-    if lider_nombre:
+
+    if lectora_mes:
         medallas_html += (
             "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
             "<div style='font-size:24px'>🏅</div>"
-            "<div style='font-weight:800;color:#854F0B;font-size:13px'>Lectora del mes</div>"
-            "<div style='font-weight:700;color:#633806;font-size:15px'>" + lider_nombre + "</div></div>"
+            "<div style='font-weight:800;color:#854F0B;font-size:13px'>Lectora de " + mes_nombre + "</div>"
+            "<div style='font-weight:700;color:#633806;font-size:15px'>" + lectora_mes + "</div>"
+            "<div style='font-size:11px;color:#854F0B'>" + str(libros_leidos_mes[lectora_mes]) + " libro(s) este mes</div></div>"
         )
+    else:
+        medallas_html += (
+            "<div style='background:#f5f5f5;border:2px solid #ddd;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
+            "<div style='font-size:24px'>🏅</div>"
+            "<div style='font-weight:800;color:#aaa;font-size:13px'>Lectora de " + mes_nombre + "</div>"
+            "<div style='font-size:12px;color:#bbb'>Ninguna ha terminado un libro este mes</div></div>"
+        )
+
     if mas_lectora:
         medallas_html += (
             "<div style='background:#d4f0e4;border:2px solid #3dba75;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
             "<div style='font-size:24px'>📚</div>"
             "<div style='font-weight:800;color:#2d7a4f;font-size:13px'>Más libros leídos</div>"
-            "<div style='font-weight:700;color:#2d7a4f;font-size:15px'>" + mas_lectora + " (" + str(libros_leidos_por[mas_lectora]) + ")</div></div>"
+            "<div style='font-weight:700;color:#2d7a4f;font-size:15px'>" + mas_lectora + "</div>"
+            "<div style='font-size:11px;color:#2d7a4f'>" + str(libros_leidos_total[mas_lectora]) + " en total</div></div>"
         )
-    # Medalla puntual perfecta: la que nunca tiene puntos negativos en historial
+
+    if menos_lectora:
+        medallas_html += (
+            "<div style='background:#fce8f3;border:2px solid #e87fbf;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
+            "<div style='font-size:24px'>😤</div>"
+            "<div style='font-weight:800;color:#a0417a;font-size:13px'>La más envidiosa</div>"
+            "<div style='font-weight:700;color:#a0417a;font-size:15px'>" + menos_lectora + "</div>"
+            "<div style='font-size:11px;color:#a0417a'>" + str(libros_leidos_total[menos_lectora]) + " en total</div></div>"
+        )
+
     medallas_html += "</div>"
     st.markdown(medallas_html, unsafe_allow_html=True)
 
@@ -746,6 +787,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con amor y letras 🐸</div>",
+    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸</div>",
     unsafe_allow_html=True
 )
