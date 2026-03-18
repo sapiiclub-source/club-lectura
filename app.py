@@ -432,21 +432,44 @@ with tab_libros:
         with c2:
             nuevo_genero = st.selectbox("Género", GENEROS, key="lib_genero")
             nueva_portada = st.text_input("URL portada (opcional)", placeholder="https://...", key="lib_portada")
-        c1, c2 = st.columns(2)
-        with c1: nueva_fi = st.date_input("Fecha de inicio (opcional)", value=None, key="lib_fi")
-        with c2: nueva_ff = st.date_input("Fecha de fin (opcional)", value=None, key="lib_ff")
         if st.button("📚 Agregar libro", type="primary", use_container_width=True):
             if nuevo_titulo.strip():
                 data["libros"].append({
                     "titulo": nuevo_titulo.strip(), "autora": nueva_autora.strip(),
                     "genero": nuevo_genero, "portada_url": nueva_portada.strip(),
                     "valoraciones": {}, "estados_miembro": {}, "comentarios": {},
-                    "fecha_inicio": str(nueva_fi) if nueva_fi else "",
-                    "fecha_fin": str(nueva_ff) if nueva_ff else "",
+                    "fechas_miembro": {},
                     "fecha_agregado": datetime.now().strftime("%d/%m/%Y")
                 })
                 save_data(data); st.success('📚 "' + nuevo_titulo.strip() + '" agregado!'); st.rerun()
             else: st.warning("El título no puede estar vacío 🐸")
+
+    # ── Editar libro (datos generales) ─────────────────────────
+    if libros:
+        with st.expander("✏️ Editar libro"):
+            titulos = [l["titulo"] for l in libros]
+            libro_edit_sel = st.selectbox("Selecciona un libro", titulos, key="edit_libro_sel")
+            edit_idx = titulos.index(libro_edit_sel)
+            libro_e = libros[edit_idx]
+            c1, c2 = st.columns(2)
+            with c1:
+                ed_titulo  = st.text_input("Título", value=libro_e["titulo"], key="gedit_titulo")
+                ed_autora  = st.text_input("Autora/Autor", value=libro_e.get("autora",""), key="gedit_autora")
+                ed_portada = st.text_input("URL portada", value=libro_e.get("portada_url",""), key="gedit_portada")
+            with c2:
+                ed_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(libro_e.get("genero","Sin género")), key="gedit_genero")
+            cc1, cc2 = st.columns([3,1])
+            with cc1:
+                if st.button("💾 Guardar cambios", key="gedit_save", type="primary"):
+                    data["libros"][edit_idx]["titulo"]      = ed_titulo.strip() or libro_e["titulo"]
+                    data["libros"][edit_idx]["autora"]      = ed_autora.strip()
+                    data["libros"][edit_idx]["genero"]      = ed_genero
+                    data["libros"][edit_idx]["portada_url"] = ed_portada.strip()
+                    save_data(data); st.success("¡Libro actualizado! 🐸"); st.rerun()
+            with cc2:
+                st.write("")
+                if st.button("🗑️ Eliminar", key="gedit_del"):
+                    data["libros"].pop(edit_idx); save_data(data); st.rerun()
 
     st.divider()
 
@@ -480,43 +503,6 @@ with tab_libros:
             for idx, libro in lista_libros:
                 render_libro_card(libro, idx, nombres_jugadoras)
 
-                # ── Expander 1: datos del libro ────────────────
-                with st.expander("✏️ Editar libro · " + libro["titulo"]):
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        ed_titulo  = st.text_input("Título", value=libro["titulo"], key=subtab_key+"_titulo_"+str(idx))
-                        ed_autora  = st.text_input("Autora/Autor", value=libro.get("autora",""), key=subtab_key+"_autora_"+str(idx))
-                        ed_portada = st.text_input("URL portada", value=libro.get("portada_url",""), key=subtab_key+"_portada_"+str(idx))
-                    with c2:
-                        ed_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(libro.get("genero","Sin género")), key=subtab_key+"_genero_"+str(idx))
-                        fi_val = None
-                        try:
-                            if libro.get("fecha_inicio"): fi_val = datetime.strptime(libro["fecha_inicio"],"%Y-%m-%d").date()
-                        except: pass
-                        ff_val = None
-                        try:
-                            if libro.get("fecha_fin"): ff_val = datetime.strptime(libro["fecha_fin"],"%Y-%m-%d").date()
-                        except: pass
-                        ed_fi = st.date_input("Fecha inicio", value=fi_val, key=subtab_key+"_fi_"+str(idx))
-                        ed_ff = st.date_input("Fecha fin",    value=ff_val, key=subtab_key+"_ff_"+str(idx))
-
-                    cc1, cc2 = st.columns([3,1])
-                    with cc1:
-                        if st.button("💾 Guardar libro", key=subtab_key+"_savelib_"+str(idx), type="primary"):
-                            data["libros"][idx]["titulo"]      = ed_titulo.strip() or libro["titulo"]
-                            data["libros"][idx]["autora"]      = ed_autora.strip()
-                            data["libros"][idx]["genero"]      = ed_genero
-                            data["libros"][idx]["portada_url"] = ed_portada.strip()
-                            data["libros"][idx]["fecha_inicio"]= str(ed_fi) if ed_fi else ""
-                            data["libros"][idx]["fecha_fin"]   = str(ed_ff) if ed_ff else ""
-                            save_data(data)
-                            st.success("¡Libro actualizado! 🐸"); st.rerun()
-                    with cc2:
-                        st.write("")
-                        if st.button("🗑️ Eliminar", key=subtab_key+"_del_"+str(idx)):
-                            data["libros"].pop(idx); save_data(data); st.rerun()
-
-                # ── Expander 2: valoración por miembro ────────
                 with st.expander("⭐ Valoración · " + libro["titulo"]):
                     quien_key = subtab_key + "_quien_" + str(idx)
                     nombre_sel = st.selectbox("¿Quién valora?", options=nombres_jugadoras, key=quien_key)
@@ -524,6 +510,10 @@ with tab_libros:
                     estm_key = subtab_key+"_estm_"+str(idx)+"_"+nombre_sel
                     val_key  = subtab_key+"_val_"+str(idx)+"_"+nombre_sel
                     com_key  = subtab_key+"_com_"+str(idx)+"_"+nombre_sel
+                    fim_key  = subtab_key+"_fim_"+str(idx)+"_"+nombre_sel
+                    ffm_key  = subtab_key+"_ffm_"+str(idx)+"_"+nombre_sel
+
+                    fechas_m = libro.get("fechas_miembro", {}).get(nombre_sel, {})
 
                     if estm_key not in st.session_state:
                         st.session_state[estm_key] = libro.get("estados_miembro",{}).get(nombre_sel,"pendiente")
@@ -540,16 +530,45 @@ with tab_libros:
                     with c2:
                         ed_val_m = st.slider("Valoración ⭐", min_value=0, max_value=5, key=val_key)
 
+                    # Fechas individuales por miembro
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        fim_val = None
+                        try:
+                            if fechas_m.get("inicio"): fim_val = datetime.strptime(fechas_m["inicio"],"%Y-%m-%d").date()
+                        except: pass
+                        ed_fim = st.date_input("Fecha inicio 📅", value=fim_val, key=fim_key)
+                    with c2:
+                        ffm_val = None
+                        try:
+                            if fechas_m.get("fin"): ffm_val = datetime.strptime(fechas_m["fin"],"%Y-%m-%d").date()
+                        except: pass
+                        ed_ffm = st.date_input("Fecha fin 📅", value=ffm_val, key=ffm_key)
+
+                    # Calcular días tardados por esta miembro
+                    if ed_fim and ed_ffm and ed_ffm >= ed_fim:
+                        dias_m = (ed_ffm - ed_fim).days
+                        st.markdown(
+                            "<div style='background:#e8f8f0;border-radius:10px;padding:6px 12px;"
+                            "font-size:13px;color:#2d7a4f;font-weight:700;margin-bottom:4px'>"
+                            "⏱️ " + str(dias_m) + " días leyendo</div>",
+                            unsafe_allow_html=True
+                        )
+
                     ed_com_m = st.text_area("Comentario 💬", placeholder="¿Qué piensa " + nombre_sel + " del libro?", key=com_key, height=80)
 
                     if st.button("💾 Guardar para " + nombre_sel, key=subtab_key+"_save_"+str(idx), type="primary", use_container_width=True):
-                        for field in ["estados_miembro","valoraciones","comentarios"]:
+                        for field in ["estados_miembro","valoraciones","comentarios","fechas_miembro"]:
                             if field not in data["libros"][idx]: data["libros"][idx][field] = {}
                         data["libros"][idx]["estados_miembro"][nombre_sel] = ed_estado_m
                         data["libros"][idx]["valoraciones"][nombre_sel]    = ed_val_m
                         data["libros"][idx]["comentarios"][nombre_sel]     = ed_com_m.strip()
+                        data["libros"][idx]["fechas_miembro"][nombre_sel]  = {
+                            "inicio": str(ed_fim) if ed_fim else "",
+                            "fin":    str(ed_ffm) if ed_ffm else ""
+                        }
                         save_data(data)
-                        for k in [estm_key, val_key, com_key, quien_key]:
+                        for k in [estm_key, val_key, com_key, quien_key, fim_key, ffm_key]:
                             if k in st.session_state: del st.session_state[k]
                         st.success("¡Guardado para " + nombre_sel + "! 🐸"); st.rerun()
 
