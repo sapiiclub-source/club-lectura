@@ -95,11 +95,26 @@ st.markdown("""
 
 # Libro actual destacado
 if data.get("libro_actual"):
+    # Buscar portada del libro actual
+    portada_actual = ""
+    autora_actual = ""
+    for _lb in data.get("libros", []):
+        if _lb["titulo"] == data["libro_actual"]:
+            portada_actual = _lb.get("portada_url", "")
+            autora_actual  = _lb.get("autora", "")
+            break
+    img_html = ""
+    if portada_actual:
+        img_html = "<img src='" + portada_actual + "' style='width:64px;height:96px;object-fit:cover;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.15);flex-shrink:0' onerror=\"this.style.display='none\"'>"
     st.markdown(
         "<div style='background:linear-gradient(135deg,#d4f0e4,#d4edf7);border:2px solid #3dba75;"
-        "border-radius:18px;padding:12px 18px;margin:8px 0;text-align:center'>"
-        "<span style='font-size:13px;color:#2d7a4f;font-weight:700'>📖 Leyendo ahora en el club</span><br>"
-        "<span style='font-size:18px;font-weight:800;color:#1a6a8a'>" + data["libro_actual"] + "</span></div>",
+        "border-radius:18px;padding:14px 18px;margin:8px 0;display:flex;align-items:center;gap:14px'>"
+        + img_html +
+        "<div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 Leyendo ahora en el club</div>"
+        "<div style='font-size:18px;font-weight:800;color:#1a6a8a;line-height:1.2'>" + data["libro_actual"] + "</div>"
+        + ("<div style='font-size:13px;color:#2d7a4f;margin-top:2px'>✍️ " + autora_actual + "</div>" if autora_actual else "") +
+        "</div></div>",
         unsafe_allow_html=True
     )
 
@@ -468,10 +483,10 @@ with tab_libros:
     with st.expander("➕ Agregar libro"):
         c1, c2 = st.columns(2)
         with c1:
-            nuevo_titulo = st.text_input("Título *", placeholder="Ej: El principito", key="lib_titulo")
-            nueva_autora = st.text_input("Autora/Autor", placeholder="Ej: Saint-Exupéry", key="lib_autora")
+            nuevo_titulo  = st.text_input("Título *", placeholder="Ej: El principito", key="lib_titulo")
+            nueva_autora  = st.text_input("Autora/Autor", placeholder="Ej: Saint-Exupéry", key="lib_autora")
         with c2:
-            nuevo_genero = st.selectbox("Género", GENEROS, key="lib_genero")
+            nuevo_genero  = st.selectbox("Género", GENEROS, key="lib_genero")
             nueva_portada = st.text_input("URL portada (opcional)", placeholder="https://...", key="lib_portada")
         if st.button("📚 Agregar libro", type="primary", use_container_width=True):
             if nuevo_titulo.strip():
@@ -482,7 +497,11 @@ with tab_libros:
                     "fechas_miembro": {},
                     "fecha_agregado": datetime.now().strftime("%d/%m/%Y")
                 })
-                save_data(data); st.success('📚 "' + nuevo_titulo.strip() + '" agregado!'); st.rerun()
+                save_data(data)
+                # Limpiar campos del formulario
+                for k in ["lib_titulo", "lib_autora", "lib_portada", "lib_genero"]:
+                    if k in st.session_state: del st.session_state[k]
+                st.success('📚 "' + nuevo_titulo.strip() + '" agregado!'); st.rerun()
             else: st.warning("El título no puede estar vacío 🐸")
 
     # ── Editar libro (datos generales) ─────────────────────────
