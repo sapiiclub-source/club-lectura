@@ -120,7 +120,43 @@ if data.get("libro_actual"):
 
 st.divider()
 
-tab_puntos, tab_libros, tab_agenda, tab_stats = st.tabs(["🏆 Puntos", "📚 Libros", "📅 Agenda", "📊 Estadísticas"])
+# ── Menú lateral (sidebar) ─────────────────────────────────
+with st.sidebar:
+    st.markdown("""
+    <div style='text-align:center;padding:0.5rem 0 1rem'>
+        <div style='font-size:36px'>🐸</div>
+        <div style='font-weight:800;color:#2d7a4f;font-size:18px'>Sapi Club</div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("### Navegación")
+    st.markdown("🏆 **Puntos** — marcador y reglas")
+    st.markdown("📚 **Biblioteca** — agregar y editar libros")
+    st.markdown("⭐ **Lecturas** — estados y valoraciones")
+    st.markdown("📅 **Agenda** — reuniones")
+    st.markdown("📊 **Estadísticas** — resumen del club")
+    st.divider()
+    st.markdown("### Resumen rápido")
+    _libros = data.get("libros", [])
+    _leidos = sum(1 for l in _libros if all(l.get("estados_miembro",{}).get(n)=="leido" for n in nombres_jugadoras))
+    st.markdown(
+        "<div style='background:#d4f0e4;border-radius:12px;padding:10px 14px;margin-bottom:8px'>"
+        "<div style='font-size:22px;font-weight:800;color:#2d7a4f'>" + str(len(_libros)) + "</div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:600'>libros en total</div></div>"
+        "<div style='background:#d4edf7;border-radius:12px;padding:10px 14px;margin-bottom:8px'>"
+        "<div style='font-size:22px;font-weight:800;color:#1a6a8a'>" + str(_leidos) + "</div>"
+        "<div style='font-size:12px;color:#1a6a8a;font-weight:600'>leídos por todas</div></div>",
+        unsafe_allow_html=True
+    )
+    if data.get("libro_actual"):
+        st.markdown("📖 **Leyendo:** " + data["libro_actual"])
+    st.divider()
+    _top = sorted(data["jugadoras"], key=lambda x: x["puntos"], reverse=True)
+    st.markdown("### 🏆 Ranking")
+    for i, j in enumerate(_top):
+        medal = ["🥇","🥈","🥉"][i] if i < 3 else str(i+1)+"."
+        st.markdown(medal + " **" + j["nombre"] + "** — " + ("+" if j["puntos"]>0 else "") + str(j["puntos"]) + " pts")
+
+tab_puntos, tab_biblioteca, tab_lecturas, tab_agenda, tab_stats = st.tabs(["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"])
 
 
 # ╔══════════════════════╗
@@ -348,9 +384,9 @@ with tab_puntos:
 
 
 # ╔══════════════════════╗
-# ║    TAB: LIBROS       ║
+# ║  TAB: BIBLIOTECA     ║
 # ╚══════════════════════╝
-with tab_libros:
+with tab_biblioteca:
 
     ESTADOS_M = {
         "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
@@ -469,17 +505,6 @@ with tab_libros:
 
     st.divider()
 
-    # Filtro por género
-    generos_usados = list(set(l.get("genero","Sin género") for l in libros)) if libros else []
-    generos_usados = [g for g in GENEROS if g in generos_usados]
-    filtro_genero = "Todos"
-    if generos_usados:
-        filtro_genero = st.selectbox("Filtrar por género", ["Todos"] + generos_usados, key="filtro_genero")
-
-    def filtrar(lista):
-        if filtro_genero == "Todos": return lista
-        return [(i, l) for i, l in lista if l.get("genero","Sin género") == filtro_genero]
-
     with st.expander("➕ Agregar libro"):
         c1, c2 = st.columns(2)
         with c1:
@@ -548,10 +573,27 @@ with tab_libros:
                 if st.button("🗑️ Eliminar", key="gedit_del"):
                     data["libros"].pop(edit_idx); save_data(data); st.rerun()
 
-    st.divider()
+
+
+# ╔══════════════════════╗
+# ║   TAB: LECTURAS      ║
+# ╚══════════════════════╝
+with tab_lecturas:
+    libros = data.get("libros", [])
+
+    # Filtro por género (compartido entre sub-tabs)
+    generos_usados2 = list(set(l.get("genero","Sin género") for l in libros)) if libros else []
+    generos_usados2 = [g for g in GENEROS if g in generos_usados2]
+    filtro_genero2 = "Todos"
+    if generos_usados2:
+        filtro_genero2 = st.selectbox("Filtrar por género", ["Todos"] + generos_usados2, key="filtro_genero2")
+
+    def filtrar2(lista):
+        if filtro_genero2 == "Todos": return lista
+        return [(i, l) for i, l in lista if l.get("genero","Sin género") == filtro_genero2]
 
     if not libros:
-        st.markdown("<div style='text-align:center;padding:2rem;color:#6abf8a;font-weight:600'><div style='font-size:40px'>📚</div><p>¡Aún no hay libros!</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center;padding:2rem;color:#6abf8a;font-weight:600'><div style='font-size:40px'>📚</div><p>¡Aún no hay libros! Agrégalos en Biblioteca 🐸</p></div>", unsafe_allow_html=True)
     else:
         def libros_para_subtab(estado_filtro):
             if estado_filtro == "pendiente":
@@ -563,9 +605,9 @@ with tab_libros:
                 return resultado
             return [(i,l) for i,l in enumerate(libros) if any(l.get("estados_miembro",{}).get(n)==estado_filtro for n in nombres_jugadoras)]
 
-        sub_leyendo   = filtrar(libros_para_subtab("leyendo"))
-        sub_leido     = filtrar(libros_para_subtab("leido"))
-        sub_pendiente = filtrar(libros_para_subtab("pendiente"))
+        sub_leyendo   = filtrar2(libros_para_subtab("leyendo"))
+        sub_leido     = filtrar2(libros_para_subtab("leido"))
+        sub_pendiente = filtrar2(libros_para_subtab("pendiente"))
 
         stab1, stab2, stab3 = st.tabs([
             "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
@@ -607,7 +649,6 @@ with tab_libros:
                     with c2:
                         ed_val_m = st.slider("Valoración ⭐", min_value=0, max_value=5, key=val_key)
 
-                    # Fechas individuales por miembro
                     c1, c2 = st.columns(2)
                     with c1:
                         fim_val = None
@@ -622,7 +663,6 @@ with tab_libros:
                         except: pass
                         ed_ffm = st.date_input("Fecha fin 📅", value=ffm_val, key=ffm_key)
 
-                    # Calcular días tardados por esta miembro
                     if ed_fim and ed_ffm and ed_ffm >= ed_fim:
                         dias_m = (ed_ffm - ed_fim).days
                         st.markdown(
