@@ -84,22 +84,6 @@ def promedio_vals(libro):
 data = load_data()
 nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
-# ── Menú hamburguesa (antes del header) ────────────────────
-TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"]
-if "menu_abierto" not in st.session_state: st.session_state["menu_abierto"] = False
-
-if st.button("☰  Menú", key="hamburger"):
-    st.session_state["menu_abierto"] = not st.session_state["menu_abierto"]
-
-if st.session_state["menu_abierto"]:
-    menu_cols = st.columns(len(TABS))
-    for i, tab_name in enumerate(TABS):
-        with menu_cols[i]:
-            if st.button(tab_name, key="nav_" + tab_name, use_container_width=True):
-                st.session_state["menu_abierto"] = False
-                st.rerun()
-    st.divider()
-
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
@@ -111,6 +95,7 @@ st.markdown("""
 
 # Libro actual destacado
 if data.get("libro_actual"):
+    # Buscar portada del libro actual
     portada_actual = ""
     autora_actual = ""
     for _lb in data.get("libros", []):
@@ -135,7 +120,43 @@ if data.get("libro_actual"):
 
 st.divider()
 
-tab_puntos, tab_biblioteca, tab_lecturas, tab_agenda, tab_stats = st.tabs(TABS)
+# ── Menú lateral (sidebar) ─────────────────────────────────
+with st.sidebar:
+    st.markdown("""
+    <div style='text-align:center;padding:0.5rem 0 1rem'>
+        <div style='font-size:36px'>🐸</div>
+        <div style='font-weight:800;color:#2d7a4f;font-size:18px'>Sapi Club</div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("### Navegación")
+    st.markdown("🏆 **Puntos** — marcador y reglas")
+    st.markdown("📚 **Biblioteca** — agregar y editar libros")
+    st.markdown("⭐ **Lecturas** — estados y valoraciones")
+    st.markdown("📅 **Agenda** — reuniones")
+    st.markdown("📊 **Estadísticas** — resumen del club")
+    st.divider()
+    st.markdown("### Resumen rápido")
+    _libros = data.get("libros", [])
+    _leidos = sum(1 for l in _libros if all(l.get("estados_miembro",{}).get(n)=="leido" for n in nombres_jugadoras))
+    st.markdown(
+        "<div style='background:#d4f0e4;border-radius:12px;padding:10px 14px;margin-bottom:8px'>"
+        "<div style='font-size:22px;font-weight:800;color:#2d7a4f'>" + str(len(_libros)) + "</div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:600'>libros en total</div></div>"
+        "<div style='background:#d4edf7;border-radius:12px;padding:10px 14px;margin-bottom:8px'>"
+        "<div style='font-size:22px;font-weight:800;color:#1a6a8a'>" + str(_leidos) + "</div>"
+        "<div style='font-size:12px;color:#1a6a8a;font-weight:600'>leídos por todas</div></div>",
+        unsafe_allow_html=True
+    )
+    if data.get("libro_actual"):
+        st.markdown("📖 **Leyendo:** " + data["libro_actual"])
+    st.divider()
+    _top = sorted(data["jugadoras"], key=lambda x: x["puntos"], reverse=True)
+    st.markdown("### 🏆 Ranking")
+    for i, j in enumerate(_top):
+        medal = ["🥇","🥈","🥉"][i] if i < 3 else str(i+1)+"."
+        st.markdown(medal + " **" + j["nombre"] + "** — " + ("+" if j["puntos"]>0 else "") + str(j["puntos"]) + " pts")
+
+tab_puntos, tab_biblioteca, tab_lecturas, tab_agenda, tab_stats = st.tabs(["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "📅 Agenda", "📊 Estadísticas"])
 
 
 # ╔══════════════════════╗
