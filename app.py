@@ -294,7 +294,7 @@ with tab_puntos:
                     data["reglas"].append({"nombre": nueva_regla.strip(), "puntos": nuevos_pts})
                     save_data(data); st.rerun()
 
-    with st.expander("👥 Editar jugadoras"):
+    with st.expander("👥 Editar miembros"):
         for i, j in enumerate(data["jugadoras"]):
             c1, c2 = st.columns([4,1])
             with c1:
@@ -306,8 +306,8 @@ with tab_puntos:
                     st.write("")
                     if st.button("🗑️", key="del_j_" + str(i)):
                         data["jugadoras"].pop(i); save_data(data); st.rerun()
-        nueva_j = st.text_input("Nueva jugadora", placeholder="Nombre 🐸", key="nueva_j")
-        if st.button("Agregar jugadora"):
+        nueva_j = st.text_input("Nueva miembro", placeholder="Nombre 🐸", key="nueva_j")
+        if st.button("Agregar miembro"):
             if nueva_j.strip():
                 data["jugadoras"].append({"nombre": nueva_j.strip(), "puntos": 0})
                 save_data(data); st.rerun()
