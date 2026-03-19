@@ -967,7 +967,7 @@ with tab_stats:
                     "border-radius:14px 14px 0 0;padding:10px 16px;margin-bottom:0px'>"
                     "<div style='display:flex;justify-content:space-between;align-items:center'>"
                     "<span style='font-weight:800;color:" + tc + ";font-size:14px'>" + nombre + "</span>"
-                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>⌀ " + str(prom_n) + " días · " + str(len(registros)) + " libro(s)</span>"
+                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>Promedio: " + str(prom_n) + " días · 
                     "</div></div>",
                     unsafe_allow_html=True
                 )
