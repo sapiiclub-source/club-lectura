@@ -227,25 +227,27 @@ with tab_puntos:
 
     # Gráfico evolución de puntos
     st.divider()
-    st.markdown("### 📈 Evolución de puntos")
-    historial_pts = data.get("historial_puntos", {})
-    if historial_pts and any(len(v) > 1 for v in historial_pts.values()):
-        try:
-            import pandas as pd
-            df_data = {}
-            max_len = max(len(v) for v in historial_pts.values())
-            for nombre, vals in historial_pts.items():
-                padded = vals + [vals[-1]] * (max_len - len(vals))
-                df_data[nombre] = padded
-            df = pd.DataFrame(df_data)
-            st.line_chart(df, use_container_width=True)
-        except Exception:
-            st.caption("Instala pandas para ver el gráfico.")
-    else:
-        st.markdown(
-            "<div style='text-align:center;padding:1rem;color:#a8d8bf;font-weight:600;font-size:13px'>"
-            "El gráfico aparecerá cuando haya más movimientos 📈</div>", unsafe_allow_html=True
+    st.markdown("### 📊 Puntos actuales")
+    jugadoras_sorted = sorted(data["jugadoras"], key=lambda x: x["puntos"], reverse=True)
+    bar_colors = ["#3dba75", "#5bc0e8", "#e87fbf", "#FAC775", "#a8a8f0"]
+    max_pts_display = max((abs(j["puntos"]) for j in jugadoras_sorted), default=1) or 1
+    bar_html = "<div style='padding:8px 0'>"
+    for i, j in enumerate(jugadoras_sorted):
+        pts = j["puntos"]
+        color = bar_colors[i % len(bar_colors)]
+        pct = max(int(abs(pts) / max_pts_display * 100), 4) if pts != 0 else 4
+        pts_str = ("+" if pts > 0 else "") + str(pts)
+        bar_html += (
+            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>"
+            "<div style='width:80px;font-weight:700;font-size:13px;color:#2d7a4f;text-align:right;flex-shrink:0'>" + j["nombre"] + "</div>"
+            "<div style='flex:1;background:#e8f8f0;border-radius:20px;height:28px;overflow:hidden'>"
+            "<div style='background:" + color + ";height:100%;width:" + str(pct) + "%;border-radius:20px;"
+            "display:flex;align-items:center;justify-content:flex-end;padding-right:10px'>"
+            "<span style='font-weight:800;font-size:13px;color:white'>" + pts_str + "</span></div></div>"
+            "</div>"
         )
+    bar_html += "</div>"
+    st.markdown(bar_html, unsafe_allow_html=True)
 
     st.divider()
     st.markdown("### ⚡ Aplicar regla")
@@ -1003,6 +1005,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸</div>",
+    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸 🐸</div>",
     unsafe_allow_html=True
 )
