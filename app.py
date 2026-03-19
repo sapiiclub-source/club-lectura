@@ -863,7 +863,7 @@ with tab_agenda:
 # ║  TAB: ESTADÍSTICAS       ║
 # ╚══════════════════════════╝
 with tab_stats:
-    st.markdown("### 📊 Estadísticas del club")
+    st.markdown("### 📊 Estadísticas del sapi-club")
 
     libros = data.get("libros", [])
     total_libros = len(libros)
@@ -930,7 +930,7 @@ with tab_stats:
         st.divider()
 
         # Tiempo por miembro por libro
-        st.markdown("**⏱️ Tiempo por miembro**")
+        st.markdown("**⏱️ Tiempo promedio por libro**")
 
         # Construir tabla: {nombre: [(titulo, dias), ...]}
         tiempos_miembro = {n: [] for n in nombres_jugadoras}
@@ -996,7 +996,7 @@ with tab_stats:
         st.divider()
 
         # Actividad y reglas por miembro
-        st.markdown("**👤 Actividad por miembro**")
+        st.markdown("**👤 Actividad por sapa**")
 
         # Parsear historial para contar reglas por miembro
         reglas_por_miembro = {n: {} for n in nombres_jugadoras}
@@ -1069,6 +1069,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con amor y letras 🐸</div>",
+    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acas 🐸</div>",
     unsafe_allow_html=True
 )
