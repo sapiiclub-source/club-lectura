@@ -319,12 +319,19 @@ with tab_puntos:
 
     st.divider()
     with st.expander("⚠️ Zona peligrosa"):
-        st.markdown("<p style='color:#e87fbf;font-weight:700'>¿Segura? Esto borrará todos los puntos 😬</p>", unsafe_allow_html=True)
-        if st.button("🔄 Reiniciar todos los puntos a cero", type="secondary"):
-            for j in data["jugadoras"]: j["puntos"] = 0
-            data["historial_puntos"] = {}
-            data["historial"].insert(0, datetime.now().strftime("%H:%M") + " — Puntos reiniciados 🔄")
-            save_data(data); st.rerun()
+        st.markdown("<p style='color:#e87fbf;font-weight:700'>¿Segura? Estas acciones no se pueden deshacer 😬</p>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🔄 Reiniciar puntos a cero", type="secondary", use_container_width=True):
+                for j in data["jugadoras"]: j["puntos"] = 0
+                data["historial_puntos"] = {}
+                data["historial"].insert(0, datetime.now().strftime("%H:%M") + " — Puntos reiniciados 🔄")
+                save_data(data); st.rerun()
+        with c2:
+            if st.button("🗑️ Borrar historial", type="secondary", use_container_width=True):
+                data["historial"] = []
+                data["historial_puntos"] = {}
+                save_data(data); st.success("Historial borrado 🐸"); st.rerun()
 
 
 # ╔══════════════════════╗
@@ -922,12 +929,13 @@ with tab_stats:
 
         st.divider()
 
-        # Tiempo promedio del club en terminar un libro
-        st.markdown("**⏱️ Tiempo promedio por libro**")
-        tiempos = []
-        for l in leidos_todos:
+        # Tiempo por miembro por libro
+        st.markdown("**⏱️ Tiempo por miembro**")
+
+        # Construir tabla: {nombre: [(titulo, dias), ...]}
+        tiempos_miembro = {n: [] for n in nombres_jugadoras}
+        for l in libros:
             fechas_m = l.get("fechas_miembro", {})
-            dias_list = []
             for n in nombres_jugadoras:
                 fm = fechas_m.get(n, {})
                 fi_s = fm.get("inicio", ""); ff_s = fm.get("fin", "")
@@ -935,28 +943,46 @@ with tab_stats:
                     try:
                         d1 = datetime.strptime(fi_s, "%Y-%m-%d")
                         d2 = datetime.strptime(ff_s, "%Y-%m-%d")
-                        if d2 >= d1: dias_list.append((d2 - d1).days)
+                        if d2 >= d1:
+                            tiempos_miembro[n].append((l["titulo"], (d2 - d1).days))
                     except: pass
-            if dias_list:
-                tiempos.append((l["titulo"], round(sum(dias_list) / len(dias_list))))
 
-        if tiempos:
-            prom_global = round(sum(t[1] for t in tiempos) / len(tiempos))
-            st.markdown(
-                "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;"
-                "padding:12px 16px;margin-bottom:12px;text-align:center'>"
-                "<div style='font-size:28px;font-weight:800;color:#854F0B'>" + str(prom_global) + " días</div>"
-                "<div style='font-size:12px;color:#854F0B;font-weight:600'>promedio del club por libro</div></div>",
-                unsafe_allow_html=True
-            )
-            for titulo, dias in sorted(tiempos, key=lambda x: x[1]):
-                st.markdown(
-                    "<div style='display:flex;justify-content:space-between;align-items:center;"
-                    "background:white;border:1px solid #fce8d0;border-radius:12px;padding:8px 14px;margin-bottom:6px'>"
-                    "<span style='font-weight:700;color:#2d7a4f;font-size:13px'>" + titulo + "</span>"
-                    "<span style='font-weight:700;color:#854F0B;font-size:13px'>⏱️ " + str(dias) + " días</span></div>",
-                    unsafe_allow_html=True
+        hay_datos = any(len(v) > 0 for v in tiempos_miembro.values())
+        if hay_datos:
+            member_colors = ["#d4f0e4", "#d4edf7", "#fce8f3", "#faeeda", "#eeedfe"]
+            member_text   = ["#2d7a4f", "#1a6a8a", "#a0417a", "#854F0B", "#3C3489"]
+            for i, nombre in enumerate(nombres_jugadoras):
+                registros = tiempos_miembro[nombre]
+                if not registros:
+                    continue
+                bg = member_colors[i % len(member_colors)]
+                tc = member_text[i % len(member_text)]
+                prom_n = round(sum(d for _, d in registros) / len(registros))
+                mas_rapido = min(registros, key=lambda x: x[1])
+                mas_lento  = max(registros, key=lambda x: x[1])
+
+                html = (
+                    "<div style='background:" + bg + ";border:1.5px solid " + tc + ";"
+                    "border-radius:16px;padding:12px 16px;margin-bottom:10px'>"
+                    "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>"
+                    "<span style='font-weight:800;color:" + tc + ";font-size:15px'>" + nombre + "</span>"
+                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>⌀ " + str(prom_n) + " días</span></div>"
                 )
+                for titulo, dias in sorted(registros, key=lambda x: x[1]):
+                    html += (
+                        "<div style='display:flex;justify-content:space-between;"
+                        "background:rgba(255,255,255,0.6);border-radius:8px;padding:5px 10px;margin-bottom:4px;font-size:12px'>"
+                        "<span style='color:#444;font-weight:600'>" + titulo + "</span>"
+                        "<span style='font-weight:700;color:" + tc + "'>⏱️ " + str(dias) + " días</span></div>"
+                    )
+                html += (
+                    "<div style='display:flex;gap:12px;margin-top:8px;font-size:11px;color:" + tc + "'>"
+                    "<span>🐇 Come Libros: <b>" + mas_rapido[0] + "</b> (" + str(mas_rapido[1]) + " días)</span>"
+                    "<span>🦋 Mariposa libre: <b>" + mas_lento[0] + "</b> (" + str(mas_lento[1]) + " días)</span>"
+                    "</div>" if len(registros) > 1 else ""
+                )
+                html += "</div>"
+                st.markdown(html, unsafe_allow_html=True)
         else:
             st.caption("Aún no hay fechas registradas para calcular tiempos 🐸")
 
