@@ -113,7 +113,7 @@ if data.get("libro_actual"):
         "border-radius:18px;padding:14px 18px;margin:8px 0;display:flex;align-items:center;justify-content:center;gap:14px'>"
         + img_html +
         "<div style='text-align:center'>"
-        "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 Leyendo ahora en el club</div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 lectura actual sapiclub</div>"
         "<div style='font-size:18px;font-weight:800;color:#1a6a8a;line-height:1.2'>" + data["libro_actual"] + "</div>"
         + ("<div style='font-size:13px;color:#2d7a4f;margin-top:2px'>✍️ " + autora_actual + "</div>" if autora_actual else "") +
         "</div></div>",
