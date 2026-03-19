@@ -967,7 +967,7 @@ with tab_stats:
                     "border-radius:14px 14px 0 0;padding:10px 16px;margin-bottom:0px'>"
                     "<div style='display:flex;justify-content:space-between;align-items:center'>"
                     "<span style='font-weight:800;color:" + tc + ";font-size:14px'>" + nombre + "</span>"
-                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>Promedio: " + str(prom_n) + " días · 
+                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>Promedio: " + str(prom_n) + " días</span>"
                     "</div></div>",
                     unsafe_allow_html=True
                 )
@@ -1069,6 +1069,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸</div>",
+    "🐸 Sapi Club · hecho con amor y letras 🐸</div>",
     unsafe_allow_html=True
 )
