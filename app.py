@@ -216,7 +216,7 @@ with tab_puntos:
     if menos_lectora:
         medallas_html += (
             "<div style='background:#fce8f3;border:2px solid #e87fbf;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
-            "<div style='font-size:24px'>😤</div>"
+            "<div style='font-size:24px'>💅🏻</div>"
             "<div style='font-weight:800;color:#a0417a;font-size:13px'>La más envidiosa</div>"
             "<div style='font-weight:700;color:#a0417a;font-size:15px'>" + menos_lectora + "</div>"
             "<div style='font-size:11px;color:#a0417a'>" + str(libros_leidos_total[menos_lectora]) + " en total</div></div>"
