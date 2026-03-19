@@ -230,7 +230,7 @@ with tab_puntos:
     c1, c2 = st.columns(2)
     with c1:
         nombres = [j["nombre"] for j in data["jugadoras"]]
-        jugadora_sel = st.selectbox("🐸 Jugadora", nombres, key="sel_j")
+        jugadora_sel = st.selectbox("🐸 sapa", nombres, key="sel_j")
     with c2:
         regla_nombres = [r["nombre"] + " (" + ("+" if r["puntos"] > 0 else "") + str(r["puntos"]) + ")" for r in data["reglas"]]
         regla_sel = st.selectbox("📖 Regla", regla_nombres, key="sel_r")
@@ -294,7 +294,7 @@ with tab_puntos:
                     data["reglas"].append({"nombre": nueva_regla.strip(), "puntos": nuevos_pts})
                     save_data(data); st.rerun()
 
-    with st.expander("👥 Editar miembros"):
+    with st.expander("👥 Editar sapa"):
         for i, j in enumerate(data["jugadoras"]):
             c1, c2 = st.columns([4,1])
             with c1:
@@ -306,8 +306,8 @@ with tab_puntos:
                     st.write("")
                     if st.button("🗑️", key="del_j_" + str(i)):
                         data["jugadoras"].pop(i); save_data(data); st.rerun()
-        nueva_j = st.text_input("Nueva miembro", placeholder="Nombre 🐸", key="nueva_j")
-        if st.button("Agregar miembro"):
+        nueva_j = st.text_input("Nueva sapa", placeholder="Nombre 🐸", key="nueva_j")
+        if st.button("Agregar sapa"):
             if nueva_j.strip():
                 data["jugadoras"].append({"nombre": nueva_j.strip(), "puntos": 0})
                 save_data(data); st.rerun()
