@@ -225,30 +225,6 @@ with tab_puntos:
     medallas_html += "</div>"
     st.markdown(medallas_html, unsafe_allow_html=True)
 
-    # Gráfico evolución de puntos
-    st.divider()
-    st.markdown("### 📊 Puntos actuales")
-    jugadoras_sorted = sorted(data["jugadoras"], key=lambda x: x["puntos"], reverse=True)
-    bar_colors = ["#3dba75", "#5bc0e8", "#e87fbf", "#FAC775", "#a8a8f0"]
-    max_pts_display = max((abs(j["puntos"]) for j in jugadoras_sorted), default=1) or 1
-    bar_html = "<div style='padding:8px 0'>"
-    for i, j in enumerate(jugadoras_sorted):
-        pts = j["puntos"]
-        color = bar_colors[i % len(bar_colors)]
-        pct = max(int(abs(pts) / max_pts_display * 100), 4) if pts != 0 else 4
-        pts_str = ("+" if pts > 0 else "") + str(pts)
-        bar_html += (
-            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>"
-            "<div style='width:80px;font-weight:700;font-size:13px;color:#2d7a4f;text-align:right;flex-shrink:0'>" + j["nombre"] + "</div>"
-            "<div style='flex:1;background:#e8f8f0;border-radius:20px;height:28px;overflow:hidden'>"
-            "<div style='background:" + color + ";height:100%;width:" + str(pct) + "%;border-radius:20px;"
-            "display:flex;align-items:center;justify-content:flex-end;padding-right:10px'>"
-            "<span style='font-weight:800;font-size:13px;color:white'>" + pts_str + "</span></div></div>"
-            "</div>"
-        )
-    bar_html += "</div>"
-    st.markdown(bar_html, unsafe_allow_html=True)
-
     st.divider()
     st.markdown("### ⚡ Aplicar regla")
     c1, c2 = st.columns(2)
@@ -986,22 +962,77 @@ with tab_stats:
 
         st.divider()
 
-        # Miembro más activa
+        # Actividad y reglas por miembro
         st.markdown("**👤 Actividad por miembro**")
+
+        # Parsear historial para contar reglas por miembro
+        reglas_por_miembro = {n: {} for n in nombres_jugadoras}
+        for entrada in data.get("historial", []):
+            # formato: "HH:MM — Nombre: "Regla" → +X pts"
+            for nombre in nombres_jugadoras:
+                if (" — " + nombre + ": \"") in entrada or (" — " + nombre + ": '") in entrada:
+                    try:
+                        # extraer la regla entre comillas
+                        if '"' in entrada:
+                            partes = entrada.split('"')
+                            regla = partes[1] if len(partes) > 1 else ""
+                        else:
+                            regla = ""
+                        # extraer puntos
+                        pts_part = entrada.split("→")[-1].strip().split(" ")[0] if "→" in entrada else "0"
+                        pts_val = int(pts_part.replace("+","")) if pts_part not in ["", "manual)", "manual"] else 0
+                        if regla:
+                            if regla not in reglas_por_miembro[nombre]:
+                                reglas_por_miembro[nombre][regla] = {"count": 0, "pts_total": 0}
+                            reglas_por_miembro[nombre][regla]["count"] += 1
+                            reglas_por_miembro[nombre][regla]["pts_total"] += pts_val
+                    except: pass
+
         for nombre in nombres_jugadoras:
-            leidos_n = sum(1 for l in libros if l.get("estados_miembro",{}).get(nombre)=="leido")
+            leidos_n  = sum(1 for l in libros if l.get("estados_miembro",{}).get(nombre)=="leido")
             leyendo_n = sum(1 for l in libros if l.get("estados_miembro",{}).get(nombre)=="leyendo")
             pts_n = next((j["puntos"] for j in data["jugadoras"] if j["nombre"]==nombre), 0)
-            st.markdown(
-                "<div style='background:white;border:1.5px solid #c5ebd8;border-radius:14px;padding:10px 14px;margin-bottom:8px'>"
-                "<div style='font-weight:800;color:#2d7a4f;font-size:14px;margin-bottom:6px'>" + nombre + "</div>"
-                "<div style='display:flex;gap:16px;font-size:12px;color:#555'>"
-                "<span>✅ <b>" + str(leidos_n) + "</b> leídos</span>"
-                "<span>📖 <b>" + str(leyendo_n) + "</b> leyendo</span>"
-                "<span>🏆 <b>" + ("+" if pts_n > 0 else "") + str(pts_n) + "</b> pts</span>"
-                "</div></div>",
-                unsafe_allow_html=True
-            )
+            reglas_n = reglas_por_miembro.get(nombre, {})
+
+            with st.expander(nombre + "  ·  " + ("+" if pts_n > 0 else "") + str(pts_n) + " pts"):
+                # Resumen rápido
+                st.markdown(
+                    "<div style='display:flex;gap:14px;font-size:13px;color:#555;margin-bottom:10px'>"
+                    "<span>✅ <b>" + str(leidos_n) + "</b> leídos</span>"
+                    "<span>📖 <b>" + str(leyendo_n) + "</b> leyendo</span>"
+                    "<span>🏆 <b>" + ("+" if pts_n > 0 else "") + str(pts_n) + "</b> pts</span>"
+                    "<span>📋 <b>" + str(sum(v["count"] for v in reglas_n.values())) + "</b> acciones</span>"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
+                if reglas_n:
+                    # Separar positivas y negativas
+                    pos = {r: v for r, v in reglas_n.items() if v["pts_total"] >= 0}
+                    neg = {r: v for r, v in reglas_n.items() if v["pts_total"] < 0}
+                    if pos:
+                        st.markdown("<div style='font-size:12px;font-weight:700;color:#2d7a4f;margin-bottom:4px'>✅ Positivas</div>", unsafe_allow_html=True)
+                        for regla, vals in sorted(pos.items(), key=lambda x: -x[1]["count"]):
+                            pts_t = ("+" if vals["pts_total"] > 0 else "") + str(vals["pts_total"])
+                            st.markdown(
+                                "<div style='display:flex;justify-content:space-between;background:#d4f0e4;"
+                                "border-radius:10px;padding:6px 12px;margin-bottom:4px;font-size:12px'>"
+                                "<span style='color:#2d7a4f;font-weight:600'>" + regla + "</span>"
+                                "<span style='color:#2d7a4f;font-weight:700'>x" + str(vals["count"]) + "  " + pts_t + " pts</span></div>",
+                                unsafe_allow_html=True
+                            )
+                    if neg:
+                        st.markdown("<div style='font-size:12px;font-weight:700;color:#c0392b;margin:8px 0 4px'>❌ Negativas</div>", unsafe_allow_html=True)
+                        for regla, vals in sorted(neg.items(), key=lambda x: x[1]["pts_total"]):
+                            pts_t = str(vals["pts_total"])
+                            st.markdown(
+                                "<div style='display:flex;justify-content:space-between;background:#fce8f3;"
+                                "border-radius:10px;padding:6px 12px;margin-bottom:4px;font-size:12px'>"
+                                "<span style='color:#a0417a;font-weight:600'>" + regla + "</span>"
+                                "<span style='color:#a0417a;font-weight:700'>x" + str(vals["count"]) + "  " + pts_t + " pts</span></div>",
+                                unsafe_allow_html=True
+                            )
+                else:
+                    st.caption("Sin acciones registradas aún 🐸")
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
