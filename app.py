@@ -977,8 +977,8 @@ with tab_stats:
                     )
                 html += (
                     "<div style='display:flex;gap:12px;margin-top:8px;font-size:11px;color:" + tc + "'>"
-                    "<span>🐇 Come Libros: <b>" + mas_rapido[0] + "</b> (" + str(mas_rapido[1]) + " días)</span>"
-                    "<span>🦋 Mariposa libre: <b>" + mas_lento[0] + "</b> (" + str(mas_lento[1]) + " días)</span>"
+                    "<span>🐇 Más rapido: <b>" + mas_rapido[0] + "</b> (" + str(mas_rapido[1]) + " días)</span>"
+                    "<span>🐢 Más lento: <b>" + mas_lento[0] + "</b> (" + str(mas_lento[1]) + " días)</span>"
                     "</div>" if len(registros) > 1 else ""
                 )
                 html += "</div>"
