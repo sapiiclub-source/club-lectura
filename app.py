@@ -961,28 +961,35 @@ with tab_stats:
                 mas_rapido = min(registros, key=lambda x: x[1])
                 mas_lento  = max(registros, key=lambda x: x[1])
 
-                html = (
+                # Header siempre visible (fuera del expander)
+                st.markdown(
                     "<div style='background:" + bg + ";border:1.5px solid " + tc + ";"
-                    "border-radius:16px;padding:12px 16px;margin-bottom:10px'>"
-                    "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>"
-                    "<span style='font-weight:800;color:" + tc + ";font-size:15px'>" + nombre + "</span>"
-                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>⌀ " + str(prom_n) + " días</span></div>"
+                    "border-radius:14px 14px 0 0;padding:10px 16px;margin-bottom:0px'>"
+                    "<div style='display:flex;justify-content:space-between;align-items:center'>"
+                    "<span style='font-weight:800;color:" + tc + ";font-size:14px'>" + nombre + "</span>"
+                    "<span style='font-weight:700;color:" + tc + ";font-size:13px'>⌀ " + str(prom_n) + " días · " + str(len(registros)) + " libro(s)</span>"
+                    "</div></div>",
+                    unsafe_allow_html=True
                 )
-                for titulo, dias in sorted(registros, key=lambda x: x[1]):
-                    html += (
-                        "<div style='display:flex;justify-content:space-between;"
-                        "background:rgba(255,255,255,0.6);border-radius:8px;padding:5px 10px;margin-bottom:4px;font-size:12px'>"
-                        "<span style='color:#444;font-weight:600'>" + titulo + "</span>"
-                        "<span style='font-weight:700;color:" + tc + "'>⏱️ " + str(dias) + " días</span></div>"
-                    )
-                html += (
-                    "<div style='display:flex;gap:12px;margin-top:8px;font-size:11px;color:" + tc + "'>"
-                    "<span>🐇 Más rapido: <b>" + mas_rapido[0] + "</b> (" + str(mas_rapido[1]) + " días)</span>"
-                    "<span>🐢 Más lento: <b>" + mas_lento[0] + "</b> (" + str(mas_lento[1]) + " días)</span>"
-                    "</div>" if len(registros) > 1 else ""
-                )
-                html += "</div>"
-                st.markdown(html, unsafe_allow_html=True)
+                # Detalle colapsable
+                with st.expander("Ver detalle", expanded=False):
+                    inner_html = ""
+                    for titulo, dias in sorted(registros, key=lambda x: x[1]):
+                        inner_html += (
+                            "<div style='display:flex;justify-content:space-between;"
+                            "background:" + bg + ";border-radius:8px;padding:5px 10px;margin-bottom:4px;font-size:12px'>"
+                            "<span style='color:#444;font-weight:600'>" + titulo + "</span>"
+                            "<span style='font-weight:700;color:" + tc + "'>⏱️ " + str(dias) + " días</span></div>"
+                        )
+                    if len(registros) > 1:
+                        inner_html += (
+                            "<div style='display:flex;gap:12px;margin-top:6px;font-size:11px;color:" + tc + "'>"
+                            "<span>🐇 Más rápida: <b>" + mas_rapido[0] + "</b> (" + str(mas_rapido[1]) + " días)</span>"
+                            "<span>🐢 Más lenta: <b>" + mas_lento[0] + "</b> (" + str(mas_lento[1]) + " días)</span>"
+                            "</div>"
+                        )
+                    st.markdown(inner_html, unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom:8px'></div>", unsafe_allow_html=True)
         else:
             st.caption("Aún no hay fechas registradas para calcular tiempos 🐸")
 
@@ -1062,6 +1069,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸 🐸</div>",
+    "🐸 Sapi Club · hecho con amor para las sapas mar-acas 🐸</div>",
     unsafe_allow_html=True
 )
