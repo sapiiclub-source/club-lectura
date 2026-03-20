@@ -1,47 +1,41 @@
 import streamlit as st
 import json
 import os
-import base64
 import requests
 from datetime import datetime, date
 
 st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
 DATA_FILE = "data.json"
 
-# ── GitHub persistence ──────────────────────────────────────
-def _gh_headers():
-    token = st.secrets.get("GITHUB_TOKEN", "")
-    return {"Authorization": "token " + token, "Accept": "application/vnd.github.v3+json"}
+# ── Supabase persistence ────────────────────────────────────
+def _sb_url():
+    return st.secrets.get("SUPABASE_URL", "") + "/rest/v1/app_data"
 
-def _gh_url():
-    repo = st.secrets.get("GITHUB_REPO", "")
-    file = st.secrets.get("GITHUB_FILE", "data.json")
-    return "https://api.github.com/repos/" + repo + "/contents/" + file
+def _sb_headers():
+    key = st.secrets.get("SUPABASE_KEY", "")
+    return {
+        "apikey": key,
+        "Authorization": "Bearer " + key,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
 
-def load_from_github():
+def load_from_supabase():
     try:
-        r = requests.get(_gh_url(), headers=_gh_headers(), timeout=10)
+        r = requests.get(_sb_url() + "?id=eq.1&select=value", headers=_sb_headers(), timeout=10)
         if r.status_code == 200:
-            info = r.json()
-            content = base64.b64decode(info["content"]).decode("utf-8")
-            d = json.loads(content)
-            st.session_state["_gh_sha"] = info["sha"]
-            return d
+            rows = r.json()
+            if rows:
+                return json.loads(rows[0]["value"])
     except Exception:
         pass
     return None
 
-def save_to_github(data):
+def save_to_supabase(data):
     try:
-        content = base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")).decode("utf-8")
-        sha = st.session_state.get("_gh_sha", "")
-        payload = {"message": "update data", "content": content}
-        if sha:
-            payload["sha"] = sha
-        r = requests.put(_gh_url(), headers=_gh_headers(), json=payload, timeout=10)
-        if r.status_code in (200, 201):
-            st.session_state["_gh_sha"] = r.json()["content"]["sha"]
-            return True
+        payload = json.dumps({"value": json.dumps(data, ensure_ascii=False)})
+        r = requests.patch(_sb_url() + "?id=eq.1", headers=_sb_headers(), data=payload, timeout=10)
+        return r.status_code in (200, 201, 204)
     except Exception:
         pass
     return False
@@ -75,7 +69,7 @@ div[data-testid="stTabs"] button { font-family: 'Nunito', sans-serif !important;
 </style>
 """, unsafe_allow_html=True)
 
-GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Thriller", "Otro"]
+GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Otro"]
 
 DEFAULT_DATA = {
     "jugadoras": [{"nombre": "Sapi 1", "puntos": 0}, {"nombre": "Sapi 2", "puntos": 0}, {"nombre": "Sapi 3", "puntos": 0}],
@@ -108,11 +102,10 @@ def migrate(d):
     return d
 
 def load_data():
-    # Usar session_state como caché — solo consulta GitHub una vez por sesión
+    # Usar session_state como caché — solo consulta Supabase una vez por sesión
     if "_data_cache" in st.session_state:
         return st.session_state["_data_cache"]
-    # Primera carga: intentar desde GitHub
-    d = load_from_github()
+    d = load_from_supabase()
     if d is None:
         if os.path.exists(DATA_FILE):
             with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -124,13 +117,10 @@ def load_data():
     return d
 
 def save_data(data):
-    # Actualizar caché inmediatamente (para que la UI refleje el cambio sin esperar GitHub)
+    # Actualizar caché inmediatamente para que la UI sea instantánea
     st.session_state["_data_cache"] = data
-    # Guardar en GitHub en background
-    ok = save_to_github(data)
-    if not ok:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    # Guardar en Supabase
+    save_to_supabase(data)
 
 def estrellas(n):
     if not n: return "☆☆☆☆☆"
@@ -1129,6 +1119,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acass 🐸</div>",
+    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acas 🐸</div>",
     unsafe_allow_html=True
 )
