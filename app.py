@@ -79,7 +79,7 @@ DEFAULT_DATA = {
         {"nombre": "Llegó tarde", "puntos": -1}, {"nombre": "Spoileó sin avisar", "puntos": -2},
     ],
     "historial": [], "historial_puntos": {}, "libros": [],
-    "agenda": [], "meta_anio": 12, "libro_actual": "", "votacion": {"propuestas": [], "activa": False}
+    "agenda": [], "meta_anio": 12, "libro_actual": "", "votacion": {"propuestas": [], "activa": False}, "personal": {}
 }
 
 def migrate(d):
@@ -88,6 +88,7 @@ def migrate(d):
     if "meta_anio" not in d: d["meta_anio"] = 12
     if "libro_actual" not in d: d["libro_actual"] = ""
     if "votacion" not in d: d["votacion"] = {"propuestas": [], "activa": False}
+    if "personal" not in d: d["personal"] = {}
     if "historial_puntos" not in d: d["historial_puntos"] = {}
     for libro in d["libros"]:
         if "valoraciones" not in libro: libro["valoraciones"] = {}
@@ -135,7 +136,7 @@ def promedio_vals(libro):
 data = load_data()
 nombres_jugadoras = [j["nombre"] for j in data["jugadoras"]]
 
-TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "📅 Agenda", "📊 Estadísticas"]
+TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "📅 Agenda", "📊 Estadísticas", "📖 Personal"]
 
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
@@ -172,7 +173,7 @@ if data.get("libro_actual"):
 
 st.divider()
 
-tab_puntos, tab_biblioteca, tab_lecturas, tab_votacion, tab_agenda, tab_stats = st.tabs(TABS)
+tab_puntos, tab_biblioteca, tab_lecturas, tab_votacion, tab_agenda, tab_stats, tab_personal = st.tabs(TABS)
 
 
 # ╔══════════════════════╗
@@ -1117,8 +1118,172 @@ with tab_stats:
                 else:
                     st.caption("Sin acciones registradas aún 🐸")
 
+# ╔══════════════════════╗
+# ║   TAB: PERSONAL      ║
+# ╚══════════════════════╝
+with tab_personal:
+    st.markdown("### 📖 Lecturas personales")
+    st.markdown(
+        "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;"
+        "padding:10px 16px;margin-bottom:14px;font-size:13px;color:#854F0B;font-weight:600'>"
+        "📚 Aquí cada una puede registrar lo que lee fuera del club — visible para todas 🐸</div>",
+        unsafe_allow_html=True
+    )
+
+    personal = data.get("personal", {})
+
+    # Selector de miembro
+    miembro_p = st.selectbox("👤 Ver lecturas de", nombres_jugadoras, key="personal_quien")
+
+    libros_p = personal.get(miembro_p, [])
+
+    # Contadores rápidos
+    p_leidos   = sum(1 for l in libros_p if l.get("estado") == "leido")
+    p_leyendo  = sum(1 for l in libros_p if l.get("estado") == "leyendo")
+    p_pendiente= sum(1 for l in libros_p if l.get("estado") == "pendiente")
+
+    member_colors = ["#d4f0e4", "#d4edf7", "#fce8f3", "#faeeda", "#eeedfe"]
+    member_text   = ["#2d7a4f", "#1a6a8a", "#a0417a", "#854F0B", "#3C3489"]
+    m_idx = nombres_jugadoras.index(miembro_p) if miembro_p in nombres_jugadoras else 0
+    bg_m = member_colors[m_idx % len(member_colors)]
+    tc_m = member_text[m_idx % len(member_text)]
+
+    st.markdown(
+        "<div style='background:" + bg_m + ";border:1.5px solid " + tc_m + ";"
+        "border-radius:14px;padding:12px 16px;margin-bottom:14px'>"
+        "<div style='font-weight:800;color:" + tc_m + ";font-size:15px;margin-bottom:8px'>" + miembro_p + "</div>"
+        "<div style='display:flex;gap:16px;font-size:13px'>"
+        "<span style='color:" + tc_m + "'>✅ <b>" + str(p_leidos) + "</b> leídos</span>"
+        "<span style='color:" + tc_m + "'>📖 <b>" + str(p_leyendo) + "</b> leyendo</span>"
+        "<span style='color:" + tc_m + "'>🕐 <b>" + str(p_pendiente) + "</b> pendientes</span>"
+        "<span style='color:" + tc_m + "'>📚 <b>" + str(len(libros_p)) + "</b> en total</span>"
+        "</div></div>",
+        unsafe_allow_html=True
+    )
+
+    # Agregar libro personal
+    with st.expander("➕ Agregar libro personal"):
+        c1, c2 = st.columns(2)
+        with c1:
+            p_titulo  = st.text_input("Título *", key="p_titulo")
+            p_autora  = st.text_input("Autora/Autor", key="p_autora")
+        with c2:
+            p_genero  = st.selectbox("Género", GENEROS, key="p_genero")
+            p_portada = st.text_input("URL portada", placeholder="https://...", key="p_portada")
+        p_estado = st.selectbox("Estado", ["leyendo", "leido", "pendiente"],
+            format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente"}[x],
+            key="p_estado")
+        if st.button("📚 Agregar", type="primary", use_container_width=True, key="p_add"):
+            if p_titulo.strip():
+                if "personal" not in data: data["personal"] = {}
+                if miembro_p not in data["personal"]: data["personal"][miembro_p] = []
+                data["personal"][miembro_p].append({
+                    "titulo": p_titulo.strip(),
+                    "autora": p_autora.strip(),
+                    "genero": p_genero,
+                    "portada_url": p_portada.strip(),
+                    "estado": p_estado,
+                    "valoracion": 0,
+                    "comentario": "",
+                    "fecha_agregado": datetime.now().strftime("%d/%m/%Y")
+                })
+                save_data(data)
+                for k in ["p_titulo","p_autora","p_portada"]:
+                    if k in st.session_state: del st.session_state[k]
+                st.success("¡Agregado! 🐸"); st.rerun()
+            else:
+                st.warning("El título no puede estar vacío 🐸")
+
+    st.divider()
+
+    # Lista de libros personales por estado
+    ESTADOS_P = {
+        "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
+        "leido":     {"label": "Leído",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
+        "pendiente": {"label": "Pendiente", "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
+    }
+
+    if not libros_p:
+        st.markdown(
+            "<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'>"
+            "<div style='font-size:36px'>📚</div>"
+            "<p>" + miembro_p + " aún no ha agregado libros personales 🐸</p></div>",
+            unsafe_allow_html=True
+        )
+    else:
+        stab_p1, stab_p2, stab_p3 = st.tabs([
+            "📖 Leyendo (" + str(p_leyendo) + ")",
+            "✅ Leídos (" + str(p_leidos) + ")",
+            "🕐 Pendientes (" + str(p_pendiente) + ")",
+        ])
+        for subtab, estado_key in [(stab_p1,"leyendo"),(stab_p2,"leido"),(stab_p3,"pendiente")]:
+            with subtab:
+                libros_filtrados = [(i,l) for i,l in enumerate(libros_p) if l.get("estado")==estado_key]
+                if not libros_filtrados:
+                    st.markdown("<div style='text-align:center;padding:1rem;color:#a8d8bf;font-weight:600'>Nada aquí todavía 🐸</div>", unsafe_allow_html=True)
+                    continue
+                for pidx, pl in libros_filtrados:
+                    est = ESTADOS_P[estado_key]
+                    prom_p = pl.get("valoracion", 0)
+                    html_p = (
+                        "<div style='background:" + est["color"] + ";border:2px solid " + est["border"] + ";"
+                        "border-radius:18px;padding:14px 16px;margin-bottom:8px'>"
+                        "<div style='display:flex;gap:10px;align-items:flex-start'>"
+                    )
+                    if pl.get("portada_url"):
+                        html_p += "<img src='" + pl["portada_url"] + "' style='width:48px;height:72px;object-fit:cover;border-radius:8px;flex-shrink:0' onerror=\"this.style.display='none\"'>"
+                    html_p += (
+                        "<div style='flex:1'>"
+                        "<div style='font-weight:800;color:" + est["text"] + ";font-size:15px'>" + pl["titulo"] + "</div>"
+                        + ("<div style='font-size:12px;color:#888;margin-top:2px'>✍️ " + pl["autora"] + "</div>" if pl.get("autora") else "")
+                        + ("<div style='display:inline-block;background:rgba(255,255,255,0.5);color:" + est["text"] + ";font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px'>" + pl.get("genero","") + "</div>" if pl.get("genero","") not in ["","Sin género"] else "")
+                        + "<div style='margin-top:6px;font-size:18px'>" + estrellas(prom_p) + "</div>"
+                        + ("<div style='font-size:12px;color:#555;font-style:italic;margin-top:4px'>💬 " + pl["comentario"] + "</div>" if pl.get("comentario") else "")
+                        + "</div></div></div>"
+                    )
+                    st.markdown(html_p, unsafe_allow_html=True)
+
+                    with st.expander("✏️ Editar · " + pl["titulo"]):
+                        ec1, ec2 = st.columns(2)
+                        with ec1:
+                            ed_p_titulo  = st.text_input("Título", value=pl["titulo"], key="ep_t_"+str(pidx))
+                            ed_p_autora  = st.text_input("Autora", value=pl.get("autora",""), key="ep_a_"+str(pidx))
+                            ed_p_portada = st.text_input("URL portada", value=pl.get("portada_url",""), key="ep_p_"+str(pidx))
+                        with ec2:
+                            ed_p_genero = st.selectbox("Género", GENEROS,
+                                index=GENEROS.index(pl.get("genero","Sin género")) if pl.get("genero","Sin género") in GENEROS else 0,
+                                key="ep_g_"+str(pidx))
+                            ed_p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente"],
+                                format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente"}[x],
+                                index=["leyendo","leido","pendiente"].index(pl.get("estado","pendiente")),
+                                key="ep_est_"+str(pidx))
+                            ed_p_val = st.slider("Valoración ⭐", 0, 5, pl.get("valoracion",0), key="ep_v_"+str(pidx))
+                        ed_p_com = st.text_area("Comentario 💬", value=pl.get("comentario",""),
+                            placeholder="¿Qué te pareció?", key="ep_c_"+str(pidx), height=70)
+
+                        cc1, cc2 = st.columns([3,1])
+                        with cc1:
+                            if st.button("💾 Guardar", key="ep_save_"+str(pidx), type="primary"):
+                                data["personal"][miembro_p][pidx].update({
+                                    "titulo": ed_p_titulo.strip() or pl["titulo"],
+                                    "autora": ed_p_autora.strip(),
+                                    "genero": ed_p_genero,
+                                    "portada_url": ed_p_portada.strip(),
+                                    "estado": ed_p_estado,
+                                    "valoracion": ed_p_val,
+                                    "comentario": ed_p_com.strip()
+                                })
+                                save_data(data)
+                                st.success("¡Guardado! 🐸"); st.rerun()
+                        with cc2:
+                            st.write("")
+                            if st.button("🗑️", key="ep_del_"+str(pidx)):
+                                data["personal"][miembro_p].pop(pidx)
+                                save_data(data)
+                                st.rerun()
+
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acass 🐸</div>",
+    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acas 🐸</div>",
     unsafe_allow_html=True
 )
