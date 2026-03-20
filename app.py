@@ -1126,7 +1126,7 @@ with tab_personal:
     st.markdown(
         "<div style='background:#faeeda;border:2px solid #FAC775;border-radius:14px;"
         "padding:10px 16px;margin-bottom:14px;font-size:13px;color:#854F0B;font-weight:600'>"
-        "📚 Aquí cada una puede registrar lo que lee fuera del club — visible para todas 🐸</div>",
+        "📚 Aquí cada una puede registrar lo que lee fuera del sapi-club 🐸</div>",
         unsafe_allow_html=True
     )
 
