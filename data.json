@@ -67,12 +67,14 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     }
   ],
   "agenda": [],
   "meta_anio": 24,
-  "libro_actual": "",
+  "libro_actual": "Hasta que Caiga la Luna",
   "votacion": {
     "propuestas": [],
     "activa": false
