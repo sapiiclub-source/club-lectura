@@ -75,7 +75,7 @@ div[data-testid="stTabs"] button { font-family: 'Nunito', sans-serif !important;
 </style>
 """, unsafe_allow_html=True)
 
-GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Otro"]
+GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Thriller", "Otro"]
 
 DEFAULT_DATA = {
     "jugadoras": [{"nombre": "Sapi 1", "puntos": 0}, {"nombre": "Sapi 2", "puntos": 0}, {"nombre": "Sapi 3", "puntos": 0}],
