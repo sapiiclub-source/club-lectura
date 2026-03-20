@@ -99,7 +99,7 @@
       "fechas_miembro": {
         "yeesy": {
           "inicio": "2024-05-23",
-          "fin": "2024-06-29"
+          "fin": "2024-05-26"
         }
       },
       "fecha_agregado": "20/03/2026",
@@ -323,7 +323,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     }
   ],
   "agenda": [],
