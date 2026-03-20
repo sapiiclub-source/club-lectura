@@ -63,10 +63,21 @@
       "autora": "Sarah A. Parker",
       "genero": "Fantasía",
       "portada_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7qHmGwikSp_NHyL2YT2CdNBdUoSORwsn6TQ&s",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
+      "valoraciones": {
+        "yeesy": 0
+      },
+      "estados_miembro": {
+        "yeesy": "leyendo"
+      },
+      "comentarios": {
+        "yeesy": ""
+      },
+      "fechas_miembro": {
+        "yeesy": {
+          "inicio": "",
+          "fin": ""
+        }
+      },
       "fecha_agregado": "20/03/2026",
       "fecha_inicio": "",
       "fecha_fin": ""
