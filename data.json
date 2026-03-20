@@ -29,6 +29,10 @@
     {
       "nombre": "punto a la mediocridad",
       "puntos": 1
+    },
+    {
+      "nombre": "fue envidiosa",
+      "puntos": -2
     }
   ],
   "historial": [],
