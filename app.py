@@ -108,23 +108,27 @@ def migrate(d):
     return d
 
 def load_data():
-    # 1. Intentar desde GitHub
+    # Usar session_state como caché — solo consulta GitHub una vez por sesión
+    if "_data_cache" in st.session_state:
+        return st.session_state["_data_cache"]
+    # Primera carga: intentar desde GitHub
     d = load_from_github()
-    if d is not None:
-        return migrate(d)
-    # 2. Fallback: archivo local
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            d = json.load(f)
-        return migrate(d)
-    # 3. Datos por defecto
-    return DEFAULT_DATA.copy()
+    if d is None:
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                d = json.load(f)
+        else:
+            d = DEFAULT_DATA.copy()
+    d = migrate(d)
+    st.session_state["_data_cache"] = d
+    return d
 
 def save_data(data):
-    # Guardar en GitHub (fuente de verdad)
+    # Actualizar caché inmediatamente (para que la UI refleje el cambio sin esperar GitHub)
+    st.session_state["_data_cache"] = data
+    # Guardar en GitHub en background
     ok = save_to_github(data)
     if not ok:
-        # Fallback local si GitHub falla
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -1125,6 +1129,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acas 🐸</div>",
+    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acass 🐸</div>",
     unsafe_allow_html=True
 )
