@@ -2,7 +2,7 @@
   "jugadoras": [
     {
       "nombre": "yeesy",
-      "puntos": 0
+      "puntos": 1
     },
     {
       "nombre": "feñii",
@@ -35,8 +35,20 @@
       "puntos": -2
     }
   ],
-  "historial": [],
-  "historial_puntos": {},
+  "historial": [
+    "14:51 — yeesy: \"punto a la mediocridad\" → +1 pts"
+  ],
+  "historial_puntos": {
+    "yeesy": [
+      1
+    ],
+    "feñii": [
+      0
+    ],
+    "ger": [
+      0
+    ]
+  },
   "libros": [],
   "agenda": [],
   "meta_anio": 12,
