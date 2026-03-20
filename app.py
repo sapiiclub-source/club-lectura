@@ -1119,6 +1119,6 @@ with tab_stats:
 
 st.markdown(
     "<div style='text-align:center;padding:1.5rem 0 1rem;color:#a8d8bf;font-size:13px;font-weight:600'>"
-    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acas 🐸</div>",
+    "🐸 Sapi Club · hecho con poco amor para las sapas mar-acass 🐸</div>",
     unsafe_allow_html=True
 )
