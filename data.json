@@ -21,6 +21,10 @@
     {
       "nombre": "Spoileó sin avisar",
       "puntos": -2
+    },
+    {
+      "nombre": "leyó lo acordado",
+      "puntos": 3
     }
   ],
   "historial": [],
