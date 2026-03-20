@@ -67,14 +67,14 @@
         "yeesy": 0
       },
       "estados_miembro": {
-        "yeesy": "leyendo"
+        "yeesy": "pendiente"
       },
       "comentarios": {
         "yeesy": ""
       },
       "fechas_miembro": {
         "yeesy": {
-          "inicio": "",
+          "inicio": "2026-03-15",
           "fin": ""
         }
       },
