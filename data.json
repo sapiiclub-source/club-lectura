@@ -1,0 +1,52 @@
+{
+  "jugadoras": [
+    {
+      "nombre": "yeesy",
+      "puntos": 0
+    },
+    {
+      "nombre": "Sapi 2",
+      "puntos": 0
+    },
+    {
+      "nombre": "Sapi 3",
+      "puntos": 0
+    }
+  ],
+  "reglas": [
+    {
+      "nombre": "Leyó el capítulo completo",
+      "puntos": 3
+    },
+    {
+      "nombre": "Llegó a tiempo",
+      "puntos": 2
+    },
+    {
+      "nombre": "Aportó al debate",
+      "puntos": 2
+    },
+    {
+      "nombre": "No leyó",
+      "puntos": -3
+    },
+    {
+      "nombre": "Llegó tarde",
+      "puntos": -1
+    },
+    {
+      "nombre": "Spoileó sin avisar",
+      "puntos": -2
+    }
+  ],
+  "historial": [],
+  "historial_puntos": {},
+  "libros": [],
+  "agenda": [],
+  "meta_anio": 12,
+  "libro_actual": "",
+  "votacion": {
+    "propuestas": [],
+    "activa": false
+  }
+}
