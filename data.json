@@ -6,7 +6,7 @@
     },
     {
       "nombre": "feñii",
-      "puntos": 0
+      "puntos": 1
     },
     {
       "nombre": "ger",
@@ -36,16 +36,20 @@
     }
   ],
   "historial": [
+    "14:51 — feñii: \"punto a la mediocridad\" → +1 pts",
     "14:51 — yeesy: \"punto a la mediocridad\" → +1 pts"
   ],
   "historial_puntos": {
     "yeesy": [
+      1,
       1
     ],
     "feñii": [
-      0
+      0,
+      1
     ],
     "ger": [
+      0,
       0
     ]
   },
