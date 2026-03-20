@@ -1,10 +1,50 @@
 import streamlit as st
 import json
 import os
+import base64
+import requests
 from datetime import datetime, date
 
 st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
 DATA_FILE = "data.json"
+
+# ── GitHub persistence ──────────────────────────────────────
+def _gh_headers():
+    token = st.secrets.get("GITHUB_TOKEN", "")
+    return {"Authorization": "token " + token, "Accept": "application/vnd.github.v3+json"}
+
+def _gh_url():
+    repo = st.secrets.get("GITHUB_REPO", "")
+    file = st.secrets.get("GITHUB_FILE", "data.json")
+    return "https://api.github.com/repos/" + repo + "/contents/" + file
+
+def load_from_github():
+    try:
+        r = requests.get(_gh_url(), headers=_gh_headers(), timeout=10)
+        if r.status_code == 200:
+            info = r.json()
+            content = base64.b64decode(info["content"]).decode("utf-8")
+            d = json.loads(content)
+            st.session_state["_gh_sha"] = info["sha"]
+            return d
+    except Exception:
+        pass
+    return None
+
+def save_to_github(data):
+    try:
+        content = base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")).decode("utf-8")
+        sha = st.session_state.get("_gh_sha", "")
+        payload = {"message": "update data", "content": content}
+        if sha:
+            payload["sha"] = sha
+        r = requests.put(_gh_url(), headers=_gh_headers(), json=payload, timeout=10)
+        if r.status_code in (200, 201):
+            st.session_state["_gh_sha"] = r.json()["content"]["sha"]
+            return True
+    except Exception:
+        pass
+    return False
 
 st.markdown("""
 <style>
@@ -37,40 +77,56 @@ div[data-testid="stTabs"] button { font-family: 'Nunito', sans-serif !important;
 
 GENEROS = ["Sin género", "Romance", "Fantasía", "Terror", "Ciencia ficción", "Drama", "Misterio", "Histórico", "Aventura", "Autoayuda", "Poesía", "Otro"]
 
+DEFAULT_DATA = {
+    "jugadoras": [{"nombre": "Sapi 1", "puntos": 0}, {"nombre": "Sapi 2", "puntos": 0}, {"nombre": "Sapi 3", "puntos": 0}],
+    "reglas": [
+        {"nombre": "Leyó el capítulo completo", "puntos": 3}, {"nombre": "Llegó a tiempo", "puntos": 2},
+        {"nombre": "Aportó al debate", "puntos": 2}, {"nombre": "No leyó", "puntos": -3},
+        {"nombre": "Llegó tarde", "puntos": -1}, {"nombre": "Spoileó sin avisar", "puntos": -2},
+    ],
+    "historial": [], "historial_puntos": {}, "libros": [],
+    "agenda": [], "meta_anio": 12, "libro_actual": "", "votacion": {"propuestas": [], "activa": False}
+}
+
+def migrate(d):
+    if "libros" not in d: d["libros"] = []
+    if "agenda" not in d: d["agenda"] = []
+    if "meta_anio" not in d: d["meta_anio"] = 12
+    if "libro_actual" not in d: d["libro_actual"] = ""
+    if "votacion" not in d: d["votacion"] = {"propuestas": [], "activa": False}
+    if "historial_puntos" not in d: d["historial_puntos"] = {}
+    for libro in d["libros"]:
+        if "valoraciones" not in libro: libro["valoraciones"] = {}
+        if "estados_miembro" not in libro: libro["estados_miembro"] = {}
+        if "comentarios" not in libro: libro["comentarios"] = {}
+        if "genero" not in libro: libro["genero"] = "Sin género"
+        if "portada_url" not in libro: libro["portada_url"] = ""
+        if "fecha_inicio" not in libro: libro["fecha_inicio"] = ""
+        if "fecha_fin" not in libro: libro["fecha_fin"] = ""
+        if "fechas_miembro" not in libro: libro["fechas_miembro"] = {}
+        libro.pop("valoracion", None); libro.pop("comentario", None)
+    return d
+
 def load_data():
+    # 1. Intentar desde GitHub
+    d = load_from_github()
+    if d is not None:
+        return migrate(d)
+    # 2. Fallback: archivo local
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             d = json.load(f)
-        if "libros" not in d: d["libros"] = []
-        if "agenda" not in d: d["agenda"] = []
-        if "meta_anio" not in d: d["meta_anio"] = 12
-        if "libro_actual" not in d: d["libro_actual"] = ""
-        if "votacion" not in d: d["votacion"] = {"propuestas": [], "activa": False}
-        if "historial_puntos" not in d: d["historial_puntos"] = {}
-        for libro in d["libros"]:
-            if "valoraciones" not in libro: libro["valoraciones"] = {}
-            if "estados_miembro" not in libro: libro["estados_miembro"] = {}
-            if "comentarios" not in libro: libro["comentarios"] = {}
-            if "genero" not in libro: libro["genero"] = "Sin género"
-            if "portada_url" not in libro: libro["portada_url"] = ""
-            if "fecha_inicio" not in libro: libro["fecha_inicio"] = ""
-            if "fecha_fin" not in libro: libro["fecha_fin"] = ""
-            libro.pop("valoracion", None); libro.pop("comentario", None)
-        return d
-    return {
-        "jugadoras": [{"nombre": "Sapi 1", "puntos": 0}, {"nombre": "Sapi 2", "puntos": 0}, {"nombre": "Sapi 3", "puntos": 0}],
-        "reglas": [
-            {"nombre": "Leyó el capítulo completo", "puntos": 3}, {"nombre": "Llegó a tiempo", "puntos": 2},
-            {"nombre": "Aportó al debate", "puntos": 2}, {"nombre": "No leyó", "puntos": -3},
-            {"nombre": "Llegó tarde", "puntos": -1}, {"nombre": "Spoileó sin avisar", "puntos": -2},
-        ],
-        "historial": [], "historial_puntos": {}, "libros": [],
-        "agenda": [], "meta_anio": 12, "libro_actual": "", "votacion": {"propuestas": [], "activa": False}
-    }
+        return migrate(d)
+    # 3. Datos por defecto
+    return DEFAULT_DATA.copy()
 
 def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    # Guardar en GitHub (fuente de verdad)
+    ok = save_to_github(data)
+    if not ok:
+        # Fallback local si GitHub falla
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
 def estrellas(n):
     if not n: return "☆☆☆☆☆"
@@ -113,7 +169,7 @@ if data.get("libro_actual"):
         "border-radius:18px;padding:14px 18px;margin:8px 0;display:flex;align-items:center;justify-content:center;gap:14px'>"
         + img_html +
         "<div style='text-align:center'>"
-        "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 lectura actual sapiclub</div>"
+        "<div style='font-size:12px;color:#2d7a4f;font-weight:700;margin-bottom:2px'>📖 Leyendo ahora en el club</div>"
         "<div style='font-size:18px;font-weight:800;color:#1a6a8a;line-height:1.2'>" + data["libro_actual"] + "</div>"
         + ("<div style='font-size:13px;color:#2d7a4f;margin-top:2px'>✍️ " + autora_actual + "</div>" if autora_actual else "") +
         "</div></div>",
@@ -216,7 +272,7 @@ with tab_puntos:
     if menos_lectora:
         medallas_html += (
             "<div style='background:#fce8f3;border:2px solid #e87fbf;border-radius:14px;padding:10px 14px;flex:1;min-width:140px;text-align:center'>"
-            "<div style='font-size:24px'>💅🏻</div>"
+            "<div style='font-size:24px'>😤</div>"
             "<div style='font-weight:800;color:#a0417a;font-size:13px'>La más envidiosa</div>"
             "<div style='font-weight:700;color:#a0417a;font-size:15px'>" + menos_lectora + "</div>"
             "<div style='font-size:11px;color:#a0417a'>" + str(libros_leidos_total[menos_lectora]) + " en total</div></div>"
@@ -230,7 +286,7 @@ with tab_puntos:
     c1, c2 = st.columns(2)
     with c1:
         nombres = [j["nombre"] for j in data["jugadoras"]]
-        jugadora_sel = st.selectbox("🐸 sapa", nombres, key="sel_j")
+        jugadora_sel = st.selectbox("🐸 Jugadora", nombres, key="sel_j")
     with c2:
         regla_nombres = [r["nombre"] + " (" + ("+" if r["puntos"] > 0 else "") + str(r["puntos"]) + ")" for r in data["reglas"]]
         regla_sel = st.selectbox("📖 Regla", regla_nombres, key="sel_r")
@@ -294,7 +350,7 @@ with tab_puntos:
                     data["reglas"].append({"nombre": nueva_regla.strip(), "puntos": nuevos_pts})
                     save_data(data); st.rerun()
 
-    with st.expander("👥 Editar sapa"):
+    with st.expander("👥 Editar jugadoras"):
         for i, j in enumerate(data["jugadoras"]):
             c1, c2 = st.columns([4,1])
             with c1:
@@ -306,8 +362,8 @@ with tab_puntos:
                     st.write("")
                     if st.button("🗑️", key="del_j_" + str(i)):
                         data["jugadoras"].pop(i); save_data(data); st.rerun()
-        nueva_j = st.text_input("Nueva sapa", placeholder="Nombre 🐸", key="nueva_j")
-        if st.button("Agregar sapa"):
+        nueva_j = st.text_input("Nueva jugadora", placeholder="Nombre 🐸", key="nueva_j")
+        if st.button("Agregar jugadora"):
             if nueva_j.strip():
                 data["jugadoras"].append({"nombre": nueva_j.strip(), "puntos": 0})
                 save_data(data); st.rerun()
@@ -863,7 +919,7 @@ with tab_agenda:
 # ║  TAB: ESTADÍSTICAS       ║
 # ╚══════════════════════════╝
 with tab_stats:
-    st.markdown("### 📊 Estadísticas del sapi-club")
+    st.markdown("### 📊 Estadísticas del club")
 
     libros = data.get("libros", [])
     total_libros = len(libros)
@@ -930,7 +986,7 @@ with tab_stats:
         st.divider()
 
         # Tiempo por miembro por libro
-        st.markdown("**⏱️ Tiempo promedio por libro**")
+        st.markdown("**⏱️ Tiempo por miembro**")
 
         # Construir tabla: {nombre: [(titulo, dias), ...]}
         tiempos_miembro = {n: [] for n in nombres_jugadoras}
@@ -996,7 +1052,7 @@ with tab_stats:
         st.divider()
 
         # Actividad y reglas por miembro
-        st.markdown("**👤 Actividad por sapa**")
+        st.markdown("**👤 Actividad por miembro**")
 
         # Parsear historial para contar reglas por miembro
         reglas_por_miembro = {n: {} for n in nombres_jugadoras}
