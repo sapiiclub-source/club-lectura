@@ -87,10 +87,21 @@
       "autora": "Stephanie Garber",
       "genero": "Fantasía",
       "portada_url": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1716857328i/33876059.jpg",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
+      "valoraciones": {
+        "yeesy": 5
+      },
+      "estados_miembro": {
+        "yeesy": "leido"
+      },
+      "comentarios": {
+        "yeesy": "es buenísimo, merecidas las 5 estrellas, es una historia muy bien contada al igual que el mundo que se presenta, es un poco cliché pero eso no le quita lo bueno, tiene varias cosas que son muy intuitivas, pero eso no le quita el misterio"
+      },
+      "fechas_miembro": {
+        "yeesy": {
+          "inicio": "2024-05-23",
+          "fin": "2024-06-29"
+        }
+      },
       "fecha_agregado": "20/03/2026",
       "fecha_inicio": "",
       "fecha_fin": ""
@@ -234,7 +245,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     },
     {
       "titulo": "Hamnet",
@@ -245,7 +258,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     },
     {
       "titulo": "La última carta",
@@ -256,7 +271,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     },
     {
       "titulo": "Érase una vez un corazón roto(⁠Once Upon a Broken Heart)",
@@ -267,7 +284,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     },
     {
       "titulo": "Cementerio de animales",
@@ -278,7 +297,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     },
     {
       "titulo": "Matar un ruiseñor",
@@ -289,7 +310,9 @@
       "estados_miembro": {},
       "comentarios": {},
       "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026"
+      "fecha_agregado": "20/03/2026",
+      "fecha_inicio": "",
+      "fecha_fin": ""
     }
   ],
   "agenda": [],
