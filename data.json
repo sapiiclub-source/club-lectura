@@ -83,30 +83,6 @@
       "fecha_fin": ""
     },
     {
-      "titulo": "Caraval",
-      "autora": "Stephanie Garber",
-      "genero": "Fantasía",
-      "portada_url": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1716857328i/33876059.jpg",
-      "valoraciones": {
-        "yeesy": 5
-      },
-      "estados_miembro": {
-        "yeesy": "leido"
-      },
-      "comentarios": {
-        "yeesy": "es buenísimo, merecidas las 5 estrellas, es una historia muy bien contada al igual que el mundo que se presenta, es un poco cliché pero eso no le quita lo bueno, tiene varias cosas que son muy intuitivas, pero eso no le quita el misterio"
-      },
-      "fechas_miembro": {
-        "yeesy": {
-          "inicio": "2024-05-23",
-          "fin": "2024-05-26"
-        }
-      },
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
       "titulo": "Un trato con el rey de los elfos",
       "autora": "Libro de Elise Kova",
       "genero": "Fantasía",
@@ -163,45 +139,6 @@
       "autora": "Jennifer L. Armentrout",
       "genero": "Fantasía",
       "portada_url": "https://assets.lectulandia.co/b/ab/Jennifer%20L%20Armentrout/De%20Sangre%20y%20Cenizas%20(28)/big.jpg",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
-      "titulo": "Un Reino de Carne y Fuego (A Kingdom of Flesh and Fire)",
-      "autora": "Jennifer L. Armentrout",
-      "genero": "Fantasía",
-      "portada_url": "https://images.cdn3.buscalibre.com/fit-in/360x360/f6/f2/f6f2835c28aabc8cf63144fcbcfe5785.jpg",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
-      "titulo": "Una corona de huesos dorados (A Crown of Gilded Bones)",
-      "autora": "Jennifer L. Armentrout",
-      "genero": "Fantasía",
-      "portada_url": "https://http2.mlstatic.com/D_NQ_NP_707192-MLC50150326989_052022-O.webp",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
-      "titulo": "Una sombra en las brasas (A Shadow in the Ember)",
-      "autora": "Jennifer L. Armentrout",
-      "genero": "Fantasía",
-      "portada_url": "https://images.cdn2.buscalibre.com/fit-in/360x360/e1/0c/e10c85019b07614465e58505d156f4fc.jpg",
       "valoraciones": {},
       "estados_miembro": {},
       "comentarios": {},
@@ -276,19 +213,6 @@
       "fecha_fin": ""
     },
     {
-      "titulo": "Érase una vez un corazón roto(⁠Once Upon a Broken Heart)",
-      "autora": "Stephanie Garber",
-      "genero": "Fantasía",
-      "portada_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwN8eS2CDUoOjn08at5TZLdjZDzxNg57bgmQ&s",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
       "titulo": "Cementerio de animales",
       "autora": "Stephen King",
       "genero": "Terror",
@@ -301,32 +225,6 @@
       "fecha_inicio": "",
       "fecha_fin": ""
     },
-    {
-      "titulo": "Matar un ruiseñor",
-      "autora": "Harper Lee",
-      "genero": "Thriller",
-      "portada_url": "https://images.cdn3.buscalibre.com/fit-in/360x360/74/61/74616e2090e08508e87b37ed2e60df84.jpg",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    },
-    {
-      "titulo": "La asistenta",
-      "autora": "Freída McFadden",
-      "genero": "Sin género",
-      "portada_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRa5oLvqAl1TO8GX9Hj7Y2F7muWSOdKZOAFAw&s",
-      "valoraciones": {},
-      "estados_miembro": {},
-      "comentarios": {},
-      "fechas_miembro": {},
-      "fecha_agregado": "20/03/2026",
-      "fecha_inicio": "",
-      "fecha_fin": ""
-    }
   ],
   "agenda": [],
   "meta_anio": 24,
