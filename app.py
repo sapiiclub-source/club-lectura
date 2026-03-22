@@ -719,7 +719,7 @@ with tab_votacion:
 
     # ── Sub-tab: Ruleta ────────────────────────────────────────
     with sruleta:
-        st.markdown("### 🎡 Ruleta — que el destino decida")
+        st.markdown("### ♣️ Ruleta ")
 
         libros_pendientes = [l["titulo"] for l in data.get("libros", [])
                              if any(l.get("estados_miembro",{}).get(n,"pendiente") in ("pendiente","sin_estado") for n in nombres_jugadoras)]
