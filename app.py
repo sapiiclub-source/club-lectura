@@ -615,7 +615,7 @@ with tab_votacion:
     activa = votacion.get("activa", False)
 
     # Sub-tabs: Votación y Ruleta
-    svot, sruleta = st.tabs(["🗳️ Votación", "🎡 Ruleta"])
+    svot, sruleta = st.tabs(["🗳️ Votación", "♦️ Ruleta"])
 
     # ── Sub-tab: Votación ──────────────────────────────────────
     with svot:
@@ -769,7 +769,7 @@ with tab_votacion:
                         del st.session_state["ruleta_resultado"]
                         st.success("¡'" + ganador + "' es el próximo libro! 🐸"); st.rerun()
                 with c2:
-                    if st.button("🎡 Volver a girar", use_container_width=True, key="ruleta_otra_vez"):
+                    if st.button("♠️ Volver a girar", use_container_width=True, key="ruleta_otra_vez"):
                         del st.session_state["ruleta_resultado"]
                         st.rerun()
 
