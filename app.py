@@ -743,7 +743,7 @@ with tab_votacion:
                 chips += "<span style='background:" + bg_c + ";color:" + tc_c + ";font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;border:1.5px solid " + tc_c + "'>" + titulo + "</span> "
             st.markdown(chips + "</div>", unsafe_allow_html=True)
 
-            if st.button("🎡 ¡Girar ruleta!", type="primary", use_container_width=True, key="girar_ruleta"):
+            if st.button("♥️ ¡Girar ruleta!", type="primary", use_container_width=True, key="girar_ruleta"):
                 ganador = random.choice(opciones)
                 st.session_state["ruleta_resultado"] = ganador
 
