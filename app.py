@@ -729,7 +729,7 @@ with tab_votacion:
         opciones = libros_propuestos if fuente == "📋 Propuestas de votación" else libros_pendientes
 
         if not opciones:
-            st.markdown("<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'><div style='font-size:36px'>🎡</div><p>No hay libros disponibles en esta fuente 🐸</p></div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'><div style='font-size:36px'>📝</div><p>No hay libros disponibles en esta fuente 🐸</p></div>", unsafe_allow_html=True)
         else:
             # Mostrar los libros que entran a la ruleta
             colores_ruleta = ["#d4f0e4","#d4edf7","#fce8f3","#faeeda","#eeedfe","#fce8f3","#d4edf7"]
