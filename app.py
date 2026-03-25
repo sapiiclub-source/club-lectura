@@ -139,7 +139,7 @@ TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
-    <img src='https://i.imgur.com/GZY8RRp.png' style='width:250px;height:250px;object-fit:contain'>
+    <img src='https://i.imgur.com/zIHgVG3.png' style='width:300px;height:300px;object-fit:contain'>
     <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
 """, unsafe_allow_html=True)
