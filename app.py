@@ -139,7 +139,7 @@ TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
-    <img src='blob:https://imgur.com/b9dc1075-1f84-42a5-aa93-e4afc9816bf8' style='width:200px;height:200px;object-fit:contain'>
+    <img src='https://imgur.com/pr5ksOF.png' style='width:200px;height:200px;object-fit:contain'>
     <h1 style='font-size:2.2rem;font-weight:800;color:#2d7a4f;margin:4px 0 0'>Sapi Club</h1>
     <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
