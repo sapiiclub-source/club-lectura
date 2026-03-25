@@ -5,7 +5,7 @@ import requests
 import random
 from datetime import datetime, date
 
-st.set_page_config(page_icon="🐸", layout="centered")
+st.set_page_config(page_title="Sapi Club 🐸", page_icon="🐸", layout="centered")
 DATA_FILE = "data.json"
 
 # ── Supabase persistence ────────────────────────────────────
@@ -139,8 +139,7 @@ TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
-    <img src='https://i.imgur.com/GZY8RRp.png' style='width:200px;height:200px;object-fit:contain'>
-    <h1 style='font-size:2.2rem;font-weight:800;color:#2d7a4f;margin:4px 0 0'>Sapi Club</h1>
+    <img src='https://i.imgur.com/GZY8RRp.png' style='width:250px;height:250px;object-fit:contain'>
     <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
 """, unsafe_allow_html=True)
