@@ -831,13 +831,16 @@ with tab_agenda:
                         if st.button("✕", key="itin_del_" + str(i) + "_" + str(ii)):
                             data["agenda"][i]["itinerario"].pop(ii)
                             save_data(data); st.rerun()
-                # Agregar nuevo ítem
+                # Agregar nuevo ítem — usar contador para rotar keys y limpiar campos
+                if "itin_cnt_" + str(i) not in st.session_state:
+                    st.session_state["itin_cnt_" + str(i)] = 0
+                cnt = st.session_state["itin_cnt_" + str(i)]
                 st.markdown("<div style='margin-top:8px'></div>", unsafe_allow_html=True)
                 c_hora, c_inp, c_btn = st.columns([2, 4, 1])
                 with c_hora:
-                    nueva_hora = st.text_input("", placeholder="19:00", key="itin_hora_" + str(i), label_visibility="collapsed")
+                    nueva_hora = st.text_input("", placeholder="19:00", key="itin_hora_" + str(i) + "_" + str(cnt), label_visibility="collapsed")
                 with c_inp:
-                    nuevo_item = st.text_input("", placeholder="Agregar ítem...", key="itin_new_" + str(i), label_visibility="collapsed")
+                    nuevo_item = st.text_input("", placeholder="Agregar ítem...", key="itin_new_" + str(i) + "_" + str(cnt), label_visibility="collapsed")
                 with c_btn:
                     if st.button("＋", key="itin_add_" + str(i)):
                         if nuevo_item.strip():
@@ -845,8 +848,7 @@ with tab_agenda:
                                 data["agenda"][i]["itinerario"] = []
                             data["agenda"][i]["itinerario"].append({"texto": nuevo_item.strip(), "hora": nueva_hora.strip(), "done": False})
                             save_data(data)
-                            st.session_state["itin_new_" + str(i)] = ""
-                            st.session_state["itin_hora_" + str(i)] = ""
+                            st.session_state["itin_cnt_" + str(i)] += 1
                             st.rerun()
 
             if st.button("🗑️ Eliminar reunión", key="del_reunion_" + str(i)):
