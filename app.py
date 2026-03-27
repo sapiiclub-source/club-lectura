@@ -804,15 +804,24 @@ with tab_agenda:
             )
             # Itinerario
             itinerario = reunion.get("itinerario", [])
-            with st.expander("📋 Itinerario (" + str(len(itinerario)) + " ítems)"):
+            # Usar session_state para mantener el expander abierto
+            exp_key = "itin_open_" + str(i)
+            if exp_key not in st.session_state: st.session_state[exp_key] = False
+            with st.expander("📋 Itinerario (" + str(len(itinerario)) + " ítems)", expanded=st.session_state[exp_key]):
+                st.session_state[exp_key] = True
                 # Mostrar ítems existentes con checkbox
                 for ii, item in enumerate(itinerario):
-                    col_check, col_text, col_del = st.columns([1, 6, 1])
+                    col_check, col_hora, col_text, col_del = st.columns([1, 2, 5, 1])
                     with col_check:
                         checked = st.checkbox("", value=item.get("done", False), key="itin_check_" + str(i) + "_" + str(ii))
                         if checked != item.get("done", False):
                             data["agenda"][i]["itinerario"][ii]["done"] = checked
                             save_data(data); st.rerun()
+                    with col_hora:
+                        hora_item = item.get("hora", "")
+                        color_h = "#aaa" if item.get("done") else "#1a6a8a"
+                        if hora_item:
+                            st.markdown("<span style='font-size:12px;font-weight:700;color:" + color_h + "'>" + hora_item + "</span>", unsafe_allow_html=True)
                     with col_text:
                         tachado = "<s>" if item.get("done") else ""
                         tachado_end = "</s>" if item.get("done") else ""
@@ -823,7 +832,10 @@ with tab_agenda:
                             data["agenda"][i]["itinerario"].pop(ii)
                             save_data(data); st.rerun()
                 # Agregar nuevo ítem
-                c_inp, c_btn = st.columns([4, 1])
+                st.markdown("<div style='margin-top:8px'></div>", unsafe_allow_html=True)
+                c_hora, c_inp, c_btn = st.columns([2, 4, 1])
+                with c_hora:
+                    nueva_hora = st.text_input("", placeholder="19:00", key="itin_hora_" + str(i), label_visibility="collapsed")
                 with c_inp:
                     nuevo_item = st.text_input("", placeholder="Agregar ítem...", key="itin_new_" + str(i), label_visibility="collapsed")
                 with c_btn:
@@ -831,10 +843,10 @@ with tab_agenda:
                         if nuevo_item.strip():
                             if "itinerario" not in data["agenda"][i]:
                                 data["agenda"][i]["itinerario"] = []
-                            data["agenda"][i]["itinerario"].append({"texto": nuevo_item.strip(), "done": False})
+                            data["agenda"][i]["itinerario"].append({"texto": nuevo_item.strip(), "hora": nueva_hora.strip(), "done": False})
                             save_data(data)
-                            if "itin_new_" + str(i) in st.session_state:
-                                del st.session_state["itin_new_" + str(i)]
+                            for k in ["itin_new_" + str(i), "itin_hora_" + str(i)]:
+                                if k in st.session_state: del st.session_state[k]
                             st.rerun()
 
             if st.button("🗑️ Eliminar reunión", key="del_reunion_" + str(i)):
