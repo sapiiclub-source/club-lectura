@@ -845,8 +845,8 @@ with tab_agenda:
                                 data["agenda"][i]["itinerario"] = []
                             data["agenda"][i]["itinerario"].append({"texto": nuevo_item.strip(), "hora": nueva_hora.strip(), "done": False})
                             save_data(data)
-                            for k in ["itin_new_" + str(i), "itin_hora_" + str(i)]:
-                                if k in st.session_state: del st.session_state[k]
+                            st.session_state["itin_new_" + str(i)] = ""
+                            st.session_state["itin_hora_" + str(i)] = ""
                             st.rerun()
 
             if st.button("🗑️ Eliminar reunión", key="del_reunion_" + str(i)):
