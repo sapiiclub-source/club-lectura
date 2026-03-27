@@ -90,6 +90,8 @@ def migrate(d):
     if "libro_actual" not in d: d["libro_actual"] = ""
     if "votacion" not in d: d["votacion"] = {"propuestas": [], "activa": False}
     if "personal" not in d: d["personal"] = {}
+    for reunion in d.get("agenda", []):
+        if "itinerario" not in reunion: reunion["itinerario"] = []
     if "historial_puntos" not in d: d["historial_puntos"] = {}
     for libro in d["libros"]:
         if "valoraciones" not in libro: libro["valoraciones"] = {}
@@ -139,7 +141,8 @@ TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
-    <img src='https://i.imgur.com/zIHgVG3.png' style='width:300px;height:300px;object-fit:contain'>
+    <div style='font-size:52px;line-height:1.1'>🐸</div>
+    <h1 style='font-size:2.2rem;font-weight:800;color:#2d7a4f;margin:4px 0 0'>Sapi Club</h1>
     <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
 """, unsafe_allow_html=True)
@@ -614,7 +617,7 @@ with tab_votacion:
     activa = votacion.get("activa", False)
 
     # Sub-tabs: Votación y Ruleta
-    svot, sruleta = st.tabs(["🗳️ Votación", "♦️ Ruleta"])
+    svot, sruleta = st.tabs(["🗳️ Votación", "🎡 Ruleta"])
 
     # ── Sub-tab: Votación ──────────────────────────────────────
     with svot:
@@ -718,7 +721,7 @@ with tab_votacion:
 
     # ── Sub-tab: Ruleta ────────────────────────────────────────
     with sruleta:
-        st.markdown("### ♣️ Ruleta ")
+        st.markdown("### 🎡 Ruleta — que el destino decida")
 
         libros_pendientes = [l["titulo"] for l in data.get("libros", [])
                              if any(l.get("estados_miembro",{}).get(n,"pendiente") in ("pendiente","sin_estado") for n in nombres_jugadoras)]
@@ -728,7 +731,7 @@ with tab_votacion:
         opciones = libros_propuestos if fuente == "📋 Propuestas de votación" else libros_pendientes
 
         if not opciones:
-            st.markdown("<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'><div style='font-size:36px'>📝</div><p>No hay libros disponibles en esta fuente 🐸</p></div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align:center;padding:2rem;color:#a8d8bf;font-weight:600'><div style='font-size:36px'>🎡</div><p>No hay libros disponibles en esta fuente 🐸</p></div>", unsafe_allow_html=True)
         else:
             # Mostrar los libros que entran a la ruleta
             colores_ruleta = ["#d4f0e4","#d4edf7","#fce8f3","#faeeda","#eeedfe","#fce8f3","#d4edf7"]
@@ -742,7 +745,7 @@ with tab_votacion:
                 chips += "<span style='background:" + bg_c + ";color:" + tc_c + ";font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;border:1.5px solid " + tc_c + "'>" + titulo + "</span> "
             st.markdown(chips + "</div>", unsafe_allow_html=True)
 
-            if st.button("♥️ ¡Girar ruleta!", type="primary", use_container_width=True, key="girar_ruleta"):
+            if st.button("🎡 ¡Girar ruleta!", type="primary", use_container_width=True, key="girar_ruleta"):
                 ganador = random.choice(opciones)
                 st.session_state["ruleta_resultado"] = ganador
 
@@ -768,7 +771,7 @@ with tab_votacion:
                         del st.session_state["ruleta_resultado"]
                         st.success("¡'" + ganador + "' es el próximo libro! 🐸"); st.rerun()
                 with c2:
-                    if st.button("♠️ Volver a girar", use_container_width=True, key="ruleta_otra_vez"):
+                    if st.button("🎡 Volver a girar", use_container_width=True, key="ruleta_otra_vez"):
                         del st.session_state["ruleta_resultado"]
                         st.rerun()
 
@@ -790,17 +793,53 @@ with tab_agenda:
             elif dias_para == 1: cuando = "¡Mañana! ✨"
             else: cuando = "En " + str(dias_para) + " días"
             st.markdown(
-                "<div style='background:#d4edf7;border:2px solid #5bc0e8;border-radius:16px;padding:14px 16px;margin-bottom:8px'>"
+                "<div style='background:#d4edf7;border:2px solid #5bc0e8;border-radius:16px;padding:14px 16px;margin-bottom:4px'>"
                 "<div style='display:flex;justify-content:space-between;align-items:flex-start'>"
-                "<div><div style='font-weight:800;color:#1a6a8a;font-size:15px'>📅 " + reunion.get("titulo","Reunión") + "</div>"
+                "<div><div style='font-weight:800;color:#1a6a8a;font-size:15px'>" + reunion.get("titulo","Reunión") + "</div>"
                 "<div style='font-size:13px;color:#1a6a8a;margin-top:2px'>" + reunion["fecha"] + "  ·  " + reunion.get("hora","") + "</div>"
-                + ("<div style='font-size:13px;color:#555;margin-top:4px'>📖 " + reunion.get("capitulos","") + "</div>" if reunion.get("capitulos") else "")
-                + ("<div style='font-size:13px;color:#555;margin-top:2px'>📝 " + reunion.get("notas","") + "</div>" if reunion.get("notas") else "")
+                + ("<div style='font-size:13px;color:#555;margin-top:4px'>" + reunion.get("capitulos","") + "</div>" if reunion.get("capitulos") else "")
+                + ("<div style='font-size:13px;color:#555;margin-top:2px'>" + reunion.get("notas","") + "</div>" if reunion.get("notas") else "")
                 + "</div><div style='text-align:right;font-size:12px;color:#1a6a8a;font-weight:700'>" + cuando + "</div></div></div>",
                 unsafe_allow_html=True
             )
+            # Itinerario
+            itinerario = reunion.get("itinerario", [])
+            with st.expander("📋 Itinerario (" + str(len(itinerario)) + " ítems)"):
+                # Mostrar ítems existentes con checkbox
+                for ii, item in enumerate(itinerario):
+                    col_check, col_text, col_del = st.columns([1, 6, 1])
+                    with col_check:
+                        checked = st.checkbox("", value=item.get("done", False), key="itin_check_" + str(i) + "_" + str(ii))
+                        if checked != item.get("done", False):
+                            data["agenda"][i]["itinerario"][ii]["done"] = checked
+                            save_data(data); st.rerun()
+                    with col_text:
+                        tachado = "<s>" if item.get("done") else ""
+                        tachado_end = "</s>" if item.get("done") else ""
+                        color_t = "#aaa" if item.get("done") else "#333"
+                        st.markdown("<span style='font-size:14px;color:" + color_t + "'>" + tachado + item["texto"] + tachado_end + "</span>", unsafe_allow_html=True)
+                    with col_del:
+                        if st.button("✕", key="itin_del_" + str(i) + "_" + str(ii)):
+                            data["agenda"][i]["itinerario"].pop(ii)
+                            save_data(data); st.rerun()
+                # Agregar nuevo ítem
+                c_inp, c_btn = st.columns([4, 1])
+                with c_inp:
+                    nuevo_item = st.text_input("", placeholder="Agregar ítem...", key="itin_new_" + str(i), label_visibility="collapsed")
+                with c_btn:
+                    if st.button("＋", key="itin_add_" + str(i)):
+                        if nuevo_item.strip():
+                            if "itinerario" not in data["agenda"][i]:
+                                data["agenda"][i]["itinerario"] = []
+                            data["agenda"][i]["itinerario"].append({"texto": nuevo_item.strip(), "done": False})
+                            save_data(data)
+                            if "itin_new_" + str(i) in st.session_state:
+                                del st.session_state["itin_new_" + str(i)]
+                            st.rerun()
+
             if st.button("🗑️ Eliminar reunión", key="del_reunion_" + str(i)):
                 data["agenda"].pop(i); save_data(data); st.rerun()
+            st.markdown("<div style='margin-bottom:8px'></div>", unsafe_allow_html=True)
     else:
         st.markdown("<div style='text-align:center;padding:1rem;color:#a8d8bf;font-weight:600'>No hay reuniones próximas agendadas 🐸</div>", unsafe_allow_html=True)
 
