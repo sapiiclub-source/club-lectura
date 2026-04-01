@@ -544,12 +544,13 @@ with tab_lecturas:
         sub_leyendo   = filtrar2(libros_para_subtab("leyendo"))
         sub_leido     = filtrar2(libros_para_subtab("leido"))
         sub_pendiente = filtrar2(libros_para_subtab("pendiente"))
+        sub_no_leer   = filtrar2([(i,l) for i,l in enumerate(libros) if any(l.get("estados_miembro",{}).get(n)=="no_leer" for n in nombres_jugadoras)])
 
-        stab1, stab2, stab3 = st.tabs([
+        stab1, stab2, stab3, stab4 = st.tabs([
             "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
             "✅ Leídos (" + str(len(sub_leido)) + ")",
             "🕐 Pendientes (" + str(len(sub_pendiente)) + ")",
-            "🚩 No lo leeré (" + str(len(sub_no_leer)) + ")"
+            "🚩 No lo leeré (" + str(len(sub_no_leer)) + ")",
         ])
 
         def render_lista_libros(lista_libros, subtab_key):
@@ -608,7 +609,7 @@ with tab_lecturas:
         with stab1: render_lista_libros(sub_leyendo, "ley")
         with stab2: render_lista_libros(sub_leido, "lei")
         with stab3: render_lista_libros(sub_pendiente, "pen")
-        sub_no_leer   = filtrar2([(i,l) for i,l in enumerate(libros) if any(l.get("estados_miembro",{}).get(n)=="no_leer" for n in nombres_jugadoras)])
+        with stab4: render_lista_libros(sub_no_leer, "nol")
 
 
 # ╔══════════════════════╗
@@ -1093,7 +1094,7 @@ with tab_personal:
                             ed_p_portada = st.text_input("URL portada", value=pl.get("portada_url",""), key="ep_p_"+str(pidx))
                         with ec2:
                             ed_p_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(pl.get("genero","Sin género")) if pl.get("genero","Sin género") in GENEROS else 0, key="ep_g_"+str(pidx))
-                            ed_p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente","no_leer"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente","no_leer":"🚩 No lo leeré"}[x], index=["leyendo","leido","pendiente","no_leer"].index(pl.get("estado","pendiente","no_leer")), key="ep_est_"+str(pidx))
+                            ed_p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente","no_leer"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente","no_leer":"🚩 No lo leeré"}[x], index=["leyendo","leido","pendiente","no_leer"].index(pl.get("estado","pendiente")), key="ep_est_"+str(pidx))
                             ed_p_val = st.slider("Valoración ⭐", 0, 5, pl.get("valoracion",0), key="ep_v_"+str(pidx))
                         ed_p_com = st.text_area("Comentario 💬", value=pl.get("comentario",""), placeholder="¿Qué te pareció?", key="ep_c_"+str(pidx), height=70)
                         cc1, cc2 = st.columns([3,1])
