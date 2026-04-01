@@ -549,7 +549,7 @@ with tab_lecturas:
             "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
             "✅ Leídos (" + str(len(sub_leido)) + ")",
             "🕐 Pendientes (" + str(len(sub_pendiente)) + ")",
-            "🚩 No lo leeré (" + str(len(sub_no_leer)) + ")",
+            "🚩 No lo leeré (" + str(len(sub_no_leer)) + ")"
         ])
 
         def render_lista_libros(lista_libros, subtab_key):
