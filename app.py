@@ -354,6 +354,7 @@ with tab_biblioteca:
         "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
         "leido":     {"label": "Leído",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
         "pendiente": {"label": "Pendiente", "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
+        "No_leer": {"label": "No lo leeré", "emoji": "🚩", "color": "#FFBEB3", "border": "#EB2200", "text": "#FF2600"},
         "sin_estado":{"label": "Sin estado","emoji": "·",  "color": "#f1f1f1", "border": "#ccc",    "text": "#999"},
     }
 
@@ -548,6 +549,7 @@ with tab_lecturas:
             "📖 Leyendo (" + str(len(sub_leyendo)) + ")",
             "✅ Leídos (" + str(len(sub_leido)) + ")",
             "🕐 Pendientes (" + str(len(sub_pendiente)) + ")",
+            "🚩 No lo leeré (" + str(len(sub_no_leer)) + ")",
         ])
 
         def render_lista_libros(lista_libros, subtab_key):
@@ -570,8 +572,8 @@ with tab_lecturas:
                     if com_key not in st.session_state: st.session_state[com_key] = libro.get("comentarios",{}).get(nombre_sel,"")
                     c1, c2 = st.columns(2)
                     with c1:
-                        ed_estado_m = st.selectbox("Estado", options=["pendiente","leyendo","leido"],
-                            format_func=lambda x: {"pendiente":"🕐 Pendiente","leyendo":"📖 Leyendo","leido":"✅ Leído"}[x], key=estm_key)
+                        ed_estado_m = st.selectbox("Estado", options=["pendiente","leyendo","leido",,"no_leer"],
+                            format_func=lambda x: {"pendiente":"🕐 Pendiente","leyendo":"📖 Leyendo","leido":"✅ Leído","no_leer":"🚩 No lo leeré"}[x], key=estm_key)
                     with c2:
                         ed_val_m = st.slider("Valoración ⭐", min_value=0, max_value=5, key=val_key)
                     c1, c2 = st.columns(2)
@@ -1036,7 +1038,7 @@ with tab_personal:
         with c2:
             p_genero  = st.selectbox("Género", GENEROS, key="p_genero")
             p_portada = st.text_input("URL portada", placeholder="https://...", key="p_portada")
-        p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente"}[x], key="p_estado")
+        p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente","no_leer"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente","no_leer":"🚩 No lo leeré"}[x], key="p_estado")
         if st.button("📚 Agregar", type="primary", use_container_width=True, key="p_add"):
             if p_titulo.strip():
                 if "personal" not in data: data["personal"] = {}
@@ -1055,6 +1057,7 @@ with tab_personal:
         "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
         "leido":     {"label": "Leído",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
         "pendiente": {"label": "Pendiente", "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
+        "No_leer": {"label": "No lo leeré", "emoji": "🚩", "color": "#FFBEB3", "border": "#EB2200", "text": "#FF2600"},
     }
 
     if not libros_p:
@@ -1089,7 +1092,7 @@ with tab_personal:
                             ed_p_portada = st.text_input("URL portada", value=pl.get("portada_url",""), key="ep_p_"+str(pidx))
                         with ec2:
                             ed_p_genero = st.selectbox("Género", GENEROS, index=GENEROS.index(pl.get("genero","Sin género")) if pl.get("genero","Sin género") in GENEROS else 0, key="ep_g_"+str(pidx))
-                            ed_p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente"}[x], index=["leyendo","leido","pendiente"].index(pl.get("estado","pendiente")), key="ep_est_"+str(pidx))
+                            ed_p_estado = st.selectbox("Estado", ["leyendo","leido","pendiente","no_leer"], format_func=lambda x: {"leyendo":"📖 Leyendo","leido":"✅ Leído","pendiente":"🕐 Pendiente","no_leer":"🚩 No lo leeré"}[x], index=["leyendo","leido","pendiente","no_leer"].index(pl.get("estado","pendiente","no_leer")), key="ep_est_"+str(pidx))
                             ed_p_val = st.slider("Valoración ⭐", 0, 5, pl.get("valoracion",0), key="ep_v_"+str(pidx))
                         ed_p_com = st.text_area("Comentario 💬", value=pl.get("comentario",""), placeholder="¿Qué te pareció?", key="ep_c_"+str(pidx), height=70)
                         cc1, cc2 = st.columns([3,1])
