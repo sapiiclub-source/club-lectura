@@ -572,7 +572,7 @@ with tab_lecturas:
                     if com_key not in st.session_state: st.session_state[com_key] = libro.get("comentarios",{}).get(nombre_sel,"")
                     c1, c2 = st.columns(2)
                     with c1:
-                        ed_estado_m = st.selectbox("Estado", options=["pendiente","leyendo","leido",,"no_leer"],
+                        ed_estado_m = st.selectbox("Estado", options=["pendiente","leyendo","leido","no_leer"],
                             format_func=lambda x: {"pendiente":"🕐 Pendiente","leyendo":"📖 Leyendo","leido":"✅ Leído","no_leer":"🚩 No lo leeré"}[x], key=estm_key)
                     with c2:
                         ed_val_m = st.slider("Valoración ⭐", min_value=0, max_value=5, key=val_key)
