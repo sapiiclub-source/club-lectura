@@ -354,7 +354,7 @@ with tab_biblioteca:
         "leyendo":   {"label": "Leyendo",   "emoji": "📖", "color": "#d4edf7", "border": "#5bc0e8", "text": "#1a6a8a"},
         "leido":     {"label": "Leído",     "emoji": "✅", "color": "#d4f0e4", "border": "#3dba75", "text": "#2d7a4f"},
         "pendiente": {"label": "Pendiente", "emoji": "🕐", "color": "#fce8f3", "border": "#e87fbf", "text": "#a0417a"},
-        "No_leer": {"label": "No lo leeré", "emoji": "🚩", "color": "#FFBEB3", "border": "#EB2200", "text": "#FF2600"},
+        "no_leer": {"label": "No lo leeré", "emoji": "🚩", "color": "#FFBEB3", "border": "#EB2200", "text": "#FF2600"},
         "sin_estado":{"label": "Sin estado","emoji": "·",  "color": "#f1f1f1", "border": "#ccc",    "text": "#999"},
     }
 
