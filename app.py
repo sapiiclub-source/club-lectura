@@ -608,6 +608,7 @@ with tab_lecturas:
         with stab1: render_lista_libros(sub_leyendo, "ley")
         with stab2: render_lista_libros(sub_leido, "lei")
         with stab3: render_lista_libros(sub_pendiente, "pen")
+        sub_no_leer   = filtrar2([(i,l) for i,l in enumerate(libros) if any(l.get("estados_miembro",{}).get(n)=="no_leer" for n in nombres_jugadoras)])
 
 
 # ╔══════════════════════╗
