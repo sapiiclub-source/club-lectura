@@ -141,7 +141,7 @@ TABS = ["🏆 Puntos", "📚 Biblioteca", "⭐ Lecturas", "🗳️ Votación", "
 # ── Header ─────────────────────────────────────────────────
 st.markdown("""
 <div style='text-align:center;padding:1rem 0 0.5rem'>
-    <img src='https://i.imgur.com/DVOjKZg.png' style='width:200px;height:200px;object-fit:contain'>
+    <img src='https://i.imgur.com/DVOjKZg.png' style='width:300px;height:300px;object-fit:contain'>
     <p style='color:#6abf8a;font-size:14px;margin:2px 0 0;font-weight:600'>✨ Marcador de lectura sapistica ✨</p>
 </div>
 """, unsafe_allow_html=True)
@@ -1020,7 +1020,7 @@ with tab_personal:
     personal = data.get("personal", {})
     miembro_p = st.selectbox("👤 Ver lecturas de", nombres_jugadoras, key="personal_quien")
     libros_p = personal.get(miembro_p, [])
-    p_leidos    = sum(1 for l in libros_p if l.get("estado") == "leido")
+    p_leidos    = sum(1 for l in libros_p if l.get("estado") == "leido") 
     p_leyendo   = sum(1 for l in libros_p if l.get("estado") == "leyendo")
     p_pendiente = sum(1 for l in libros_p if l.get("estado") == "pendiente")
 
